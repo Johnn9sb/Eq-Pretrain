@@ -12,6 +12,7 @@ For any questions or issues, feel free to reach out and contribute!
 + To install fairseq and develop this implementation locally:
 ```
 git clone https://github.com/j0hnng/Earthquake_Pretraining.git
+cd Eq-Pretrain
 cd fairseq-main
 pip install --editable ./
 ```
