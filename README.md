@@ -1,4 +1,4 @@
-# Earthquake_Pretraining
+# Earthquake-Pretraining
 Earthquake Waveform Pre-trained Model
 PyTorch implementation of "Earthquake Waveform Pre-trained Model" with Fairseq.
 
