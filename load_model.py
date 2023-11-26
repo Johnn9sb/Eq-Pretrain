@@ -4,7 +4,7 @@ from fairseq.dataclass.configs import FairseqConfig
 from fairseq.dataclass.initialize import hydra_init
 from fairseq import tasks
 
-@hydra.main(config_path='/work/u3601026/fairseq-main/fairseq/config', config_name="config")
+@hydra.main(config_path=os.path.join(".", "fairseq", "config"), config_name="config")
 def main(cfg: FairseqConfig) -> float:
     
     # Load Model for EQ-Pretrain
