@@ -21,7 +21,7 @@ pip install --editable ./
 ```
 + How to load models in this implementation
 ```
-python ./fairseq_cli/load_model.py --config-dir ./config --config-name eq_pretrain
+python load_model.py --config-dir ./config --config-name eq_pretrain
 ```
-Please run and edit your scripts within `load_model.py` in `./fairseq_cli`.
+Please run and edit your scripts within `load_model.py`.
 This is necessary to correctly load models in the fairseq format.
