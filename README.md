@@ -6,6 +6,10 @@ Please note that the current version supports inference functionalities exclusiv
 
 ## Requirements and Installation
 + [PyTorch](https://pytorch.org/) version >= 1.10.0
+```
+conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit=11.3 -c pytorch -c conda-forge
+# If you have PyTorch installed, please ignore this line.
+```
 + Python version >= 3.8
 + To avoid environment issues, please run our script in the Anaconda environment.
 + To install and develop this implementation locally:
