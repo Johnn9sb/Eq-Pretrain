@@ -4,6 +4,10 @@ PyTorch implementation of "Earthquake Waveform Pre-trained Model" with Fairseq.
 This implementation is currently designed for inference purposes only and is not intended for training.
 Please note that the current version supports inference functionalities exclusively.
 
+## Pre-trained models
+Download Link: [download](https://drive.google.com/file/d/1QRpMPg4Q-gOQpfDoS5NbmiVzIMb6njS9/view?usp=sharing)
+
+
 ## Requirements and Installation
 + [PyTorch](https://pytorch.org/) version >= 1.10.0
 ```
