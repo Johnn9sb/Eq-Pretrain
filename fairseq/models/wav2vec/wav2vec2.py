@@ -1214,7 +1214,65 @@ class ConformerEncoder(TransformerEncoder):
         x = x.transpose(0, 1)
 
         return x, layer_results
+        
+class AdapterFast(nn.Module):
+    def __init__(self, adapter_num, input_dim, hidden_dim, act_fn):
+        """
+        Implements adapter modules directly with 3D tensor weight as parameters
+        and without using ModuleList orto speed up training throughput.
+        """
+        super().__init__()
 
+        self.adapter_num = adapter_num
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.W_a = nn.Parameter(torch.empty(adapter_num, hidden_dim, input_dim))
+        self.W_b = nn.Parameter(torch.empty(adapter_num, input_dim, hidden_dim))
+        self.b_a = nn.Parameter(torch.empty(adapter_num, hidden_dim))
+        self.b_b = nn.Parameter(torch.empty(adapter_num, input_dim))
+
+        self.ln_W = nn.Parameter(torch.empty(adapter_num, input_dim))
+        self.ln_b = nn.Parameter(torch.empty(adapter_num, input_dim))
+        self.act_fn = nn.Identity()
+        if act_fn == "relu":
+            self.act_fn = nn.ReLU()
+        elif act_fn == "gelu":
+            self.act_fn = nn.GELU()
+        elif act_fn == "selu":
+            self.act_fn = nn.SELU()
+        else:
+            raise ValueError(f"unsupported {act_fn}")
+
+
+        self.input_dim = input_dim
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        for ii in range(self.adapter_num):
+            nn.init.kaiming_uniform_(self.W_a[ii], a=math.sqrt(5))
+            nn.init.kaiming_uniform_(self.W_b[ii], a=math.sqrt(5))
+            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.W_a[ii])
+            bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
+            nn.init.uniform_(self.b_a[ii], -bound, bound)
+            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.W_b[ii])
+            bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
+            nn.init.uniform_(self.b_b[ii], -bound, bound)
+
+        nn.init.ones_(self.ln_W)
+        nn.init.zeros_(self.ln_b)
+
+    def forward(self, x, adapter_id):
+        ii = adapter_id
+        h = x
+        h = F.layer_norm(h, (self.input_dim, ), self.ln_W[ii], self.ln_b[ii])
+        h = F.linear(h, self.W_a[ii], self.b_a[ii])
+        h = self.act_fn(h)
+        h = F.linear(h, self.W_b[ii], self.b_b[ii])
+        outputs = h
+        return outputs
+
+    def extra_repr(self):
+        return ('adapter={}, input_dim={}, hidden_dim={}'.format(self.adapter_num, self.input_dim, self.hidden_dim))
 
 class TransformerSentenceEncoderLayer(nn.Module):
     """
