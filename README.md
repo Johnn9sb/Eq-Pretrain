@@ -1,5 +1,4 @@
 # Earthquake-Pretraining
-Earthquake Waveform Pre-trained Model
 PyTorch implementation of "Earthquake Waveform Pre-trained Model" with Fairseq.
 
 This implementation is currently designed for inference purposes only and is not intended for training.
