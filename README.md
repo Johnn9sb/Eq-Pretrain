@@ -14,7 +14,7 @@ conda install pytorch==1.10.1 torchvision==0.11.2 torchaudio==0.10.1 cudatoolkit
 + To avoid environment issues, please run our script in the Anaconda environment.
 + To install and develop this implementation locally:
 ```
-git clone https://github.com/j0hnng/Eq-Pretrain.git
+git clone https://github.com/Johnn9sb/Eq-Pretrain.git
 mv Eq-Pretrain fairseq
 cd fairseq
 pip install --editable ./
