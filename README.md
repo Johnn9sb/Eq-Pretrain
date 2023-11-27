@@ -1,3 +1,4 @@
+![](https://img.shields.io/static/v1?label=python&message=>3.8&color=yellow)
 # Earthquake-Pretraining
 PyTorch implementation of "Earthquake Waveform Pre-trained Model" with Fairseq.
 
