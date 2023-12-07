@@ -1,79 +1,53 @@
-# Github 學習筆記
+# Magnitude Estimaion
 
-## repository 遠端版本庫
-* 查看遠端
+## Install Dependency
 ```shell=
-# 顯示名稱
-$ git remote
+$ cd ../seisbench
 
-# 顯示名稱與 URL
-$ git remove -v 
+# 更改 seisbench/__init__.py 內的 "cache_root"，用來放資料集 cache (需要大容量的路徑)
+
+$ pip install .
 ```
 
-* 新增新的 repo
-    * ```fetch```: 只會下載尚未更改的資料，不會與本地端合併，之後還是要手動合併 
-    (**pull** 在沒有衝突時會直接合併)
-    * **pull** 可以想像成是 fetch + 手動合併的過程
+## Fine-tuning
+* 重要指令不能為空
+    * ```--save_path```: checkpoint 存放位置 (./result/<save_path>)
+    * ```--model_opt```: 模型種類 (ex. w2v, magnet...)
+    * ```--decoder_type```: For w2v, 指定的 decoder 類別 (ex. linear, CNN_Linear, CNN_LSTM)
+
+* 建議下的指令
+    * ```--batch_size```, ```--epochs```, ```--lr```
+    * ```--workers```: Dataloader 使用的執行緒數量
+    * ```--level```: CWA dataset 篩選，通常設為 "4"
+    * ```--without_noise```: 將雜訊資料捨棄 (True/False)
+    * ```--aug```: 做 data augmentation (ex. Gaussian noise...)
+    * ```--w2v_path```: 如果不要 load pretrained，請給 "None" 值
+
+* 篩選資料集指令
+    * ```--instrument```: 指定儀器 channel (ex. HL, EH, HH)
+    * ```--location```: 指定儀器 location (ex. 10, 0, 20)
+    * ```--epidis```: 指定波型的 epicentral distance <= 某值
+    * ```--snr```: 指定波型的 SNR >= 某值
+
 ```shell=
-$ git remote add <remote_name> <url>
-
-# 獲取遠端 repo 資料
-$ git fetch <remote_name>
-
-# fetch 完合併當潛在的 branch 與 <branch_name>
-$ git merge <branch_name>
+$ CUDA_VISIBLE_DEVICES=<gpu_id> python train.py \
+    --save_path <save_path> \
+    --model_opt <model_opt> \
+    --decoder_type <decoder_type> \
 ```
 
-* 移除或重新命名
-```shell=
-# rename
-$ git remote rename <remote_name> <new_remote_name>
+## Testing
+* 指令規則如上
+* 測試專屬指令
+    * ```--p_timestep```: 測試時固定 P-phase 在某時間點
 
-# remove
-$ git remote rm <remote_naem>
+```shell=
+$ CUDA_VISIBLE_DEVICES=<gpu_id> python test.py \
+    --save_path <save_path> \
+    --model_opt <model_opt> \
+    --decoder_type <decoder_type> \
+    --p_timestep <p_timestep> \
 ```
 
-## Push
-```shell=
-$ git push <remote_name> <branch_name>
-```
-
-## Branch
-* Git 有個 ```HEAD``` 指標指向你正在工作的 branch 上
-
-* 查看目前有的 branch
-    * **"*"** 表示目前 checkout 的分支
-```shell=
-$ git branch
-
-# 查看各分支最後一次提交的記錄
-$ git branch -v
-
-# 查看哪些分支已經/尚未被合併到當前 branch
-$ git branch --merged
-$ git branch --no-merged
-```
-
-* 建立新的分支，但不會切換到該 branch
-```shell=
-$ git branch <branch_name>
-```
-
-* 查看目前 HEAD 指標指向何處
-```shell=
-$ git log --decorate
-```
-
-* 切換 HEAD 到指定 branch
-```shell=
-$ git checkout <branch_name>
-
-# 同時做 create 與切換到指定 branch
-$ git checkout -b <branch_name>
-```
-
-* 刪除沒用的 branch
-```shell=
-$ git branch -d <branch_name>
-```
-
+## Output
+* 結果存於 ./result/<save_path>/score
