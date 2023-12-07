@@ -1,6 +1,9 @@
 # Magnitude Estimaion
 
 ## Install Dependency
+* 如要線上下載 STEAD 資料集, 請先安裝最新版的 seisbench, 並使用套件安裝
+* 下載完後, 請在執行以下步驟
+
 ```shell=
 $ cd ../seisbench
 
