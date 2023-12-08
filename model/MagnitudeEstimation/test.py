@@ -12,6 +12,7 @@ import requests
 from tqdm import tqdm
 from argparse import Namespace
 from utils import *
+from sklearn.metrics import r2_score
 
 import torch
 import torch.nn as nn
@@ -119,35 +120,38 @@ def inference(opt, model, test_loader, device):
 
     return pred, gt
 
-def score(pred, gt, output_dir, f):
+def score(pred, gt, output_dir, f, status):
     total_diff = np.abs(np.array(pred)-np.array(gt))
     total_mae = total_diff.mean()
     total_mse = np.power(total_diff, 2).mean()
     total_std = np.std(total_diff)
+    total_r2 = r2_score(pred, gt)
 
     noise_mask = np.array(gt) == 0
     without_noise_diff = np.abs(np.array(pred)[~noise_mask]-np.array(gt)[~noise_mask])
     without_noise_mae = without_noise_diff.mean()
     without_noise_mse = np.power(without_noise_diff, 2).mean()
     without_noise_std = np.std(without_noise_diff)
+    without_noise_r2 = r2_score(np.array(pred)[~noise_mask], np.array(gt)[~noise_mask])
 
     mag4_mask = np.array(gt) >= 4.0
-    mag4_diff = np.abs(np.array(pred)[~mag4_mask]-np.array(gt)[~mag4_mask])
+    mag4_diff = np.abs(np.array(pred)[mag4_mask]-np.array(gt)[mag4_mask])
     mag4_mae = mag4_diff.mean()
     mag4_mse = np.power(mag4_diff, 2).mean()
     mag4_std = np.std(mag4_diff)
+    mag4_noise_r2 = r2_score(np.array(pred)[mag4_mask], np.array(gt)[mag4_mask])
 
-    logging.info(f"Total -> MAE: {round(total_mae, 4)}, MSE: {round(total_mse, 4)}, std: {round(total_std, 4)}\n")
-    logging.info(f"w/o Noise -> MAE: {round(without_noise_mae, 4)}, MSE: {round(without_noise_mse, 4)}, std: {round(without_noise_std, 4)}\n")
-    logging.info(f"MAG4 -> MAE: {round(mag4_mae, 4)}, MSE: {round(mag4_mse, 4)}, std: {round(mag4_std, 4)}\n")
+    logging.info(f"Total -> MAE: {round(total_mae, 4)}, MSE: {round(total_mse, 4)}, std: {round(total_std, 4)}, R2score: {round(total_r2, 4)}\n")
+    logging.info(f"w/o Noise -> MAE: {round(without_noise_mae, 4)}, MSE: {round(without_noise_mse, 4)}, std: {round(without_noise_std, 4)}, R2score: {round(without_noise_r2, 4)}\n")
+    logging.info(f"MAG4 -> MAE: {round(mag4_mae, 4)}, MSE: {round(mag4_mse, 4)}, std: {round(mag4_std, 4)}, R2score: {round(mag4_noise_r2, 4)}\n")
 
-    f.write(f"Total -> MAE: {round(total_mae, 4)}, MSE: {round(total_mse, 4)}, std: {round(total_std, 4)}\n")
-    f.write(f"w/o Noise -> MAE: {round(without_noise_mae, 4)}, MSE: {round(without_noise_mse, 4)}, std: {round(without_noise_std, 4)}\n")
-    f.write(f"MAG4 -> MAE: {round(mag4_mae, 4)}, MSE: {round(mag4_mse, 4)}, std: {round(mag4_std, 4)}\n")
+    f.write(f"Total -> MAE: {round(total_mae, 4)}, MSE: {round(total_mse, 4)}, std: {round(total_std, 4)}, R2score: {round(total_r2, 4)}\n")
+    f.write(f"w/o Noise -> MAE: {round(without_noise_mae, 4)}, MSE: {round(without_noise_mse, 4)}, std: {round(without_noise_std, 4)}, R2score: {round(without_noise_r2, 4)}\n")
+    f.write(f"MAG4 -> MAE: {round(mag4_mae, 4)}, MSE: {round(mag4_mse, 4)}, std: {round(mag4_std, 4)}, R2score: {round(mag4_noise_r2, 4)}\n")
 
-    with open(os.path.join(output_dir, 'pred.pkl'), 'wb') as f:
+    with open(os.path.join(output_dir, f'{status}_pred.pkl'), 'wb') as f:
         pickle.dump(pred, f)
-    with open(os.path.join(output_dir, 'gt.pkl'), 'wb') as f:
+    with open(os.path.join(output_dir, f'{status}_gt.pkl'), 'wb') as f:
         pickle.dump(gt, f)
 
 if __name__ == '__main__':
@@ -224,7 +228,7 @@ if __name__ == '__main__':
         logging.info('Inference on validation set')
         f.write('Inference on validation set\n')
         pred, gt = inference(opt, model, dev_loader, device)
-        score(pred, gt, output_dir, f)
+        score(pred, gt, output_dir, f, 'dev')
 
         print('Inference on testing set')
         logging.info('======================================================')
@@ -232,7 +236,7 @@ if __name__ == '__main__':
         logging.info('Inference on testing set')
         f.write('Inference on testing set\n')
         pred, gt = inference(opt, model, test_loader, device)
-        score(pred, gt, output_dir, f)
+        score(pred, gt, output_dir, f, 'test')
         logging.info('======================================================')
         f.write('======================================================\n')
 
