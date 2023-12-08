@@ -199,6 +199,10 @@ if __name__ == '__main__':
     opt = parse_args()
     
     output_dir = os.path.join('./results', opt.save_path)
+    # save the config into json 
+    with open(os.path.join(output_dir, 'config.json'), 'w') as f:
+        json.dump(vars(opt), f, indent=2)
+
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
@@ -375,9 +379,7 @@ if __name__ == '__main__':
         print('Finish training...')
         toLine(opt.save_path, train_loss, valid_loss, epoch, opt.epochs, True)
 
-        # save the config into json 
-        with open(os.path.join(output_dir, 'config.json'), 'w') as f:
-            json.dump(vars(opt), f, indent=2)
+        
 
 
 
