@@ -4,7 +4,7 @@
 * 如要線上下載 STEAD 資料集, 請先安裝最新版的 seisbench, 並使用套件安裝
 * 下載完後, 請在執行以下步驟
 
-```shell=
+```shell
 $ cd ../seisbench
 
 # 更改 seisbench/__init__.py 內的 "cache_root"，用來放資料集 cache (需要大容量的路徑)
@@ -32,7 +32,7 @@ $ pip install .
     * ```--epidis```: 指定波型的 epicentral distance <= 某值
     * ```--snr```: 指定波型的 SNR >= 某值
 
-```shell=
+```shell
 $ CUDA_VISIBLE_DEVICES=<gpu_id> python train.py \
     --save_path <save_path> \
     --model_opt <model_opt> \
@@ -44,7 +44,7 @@ $ CUDA_VISIBLE_DEVICES=<gpu_id> python train.py \
 * 測試專屬指令
     * ```--p_timestep```: 測試時固定 P-phase 在某時間點
 
-```shell=
+```shell
 $ CUDA_VISIBLE_DEVICES=<gpu_id> python test.py \
     --save_path <save_path> \
     --model_opt <model_opt> \
@@ -56,7 +56,8 @@ $ CUDA_VISIBLE_DEVICES=<gpu_id> python test.py \
 * 結果存於 ./result/<save_path>/score
 * 資料夾內的 pred.pkl, gt.pkl 為每筆資料的 prediction & ground-truth
 * loading 方法
-```python=
+
+```python
 import pickle
 
 f = open(path_to_pkl, 'rb')
