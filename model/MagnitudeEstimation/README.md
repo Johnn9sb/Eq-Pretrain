@@ -54,3 +54,13 @@ $ CUDA_VISIBLE_DEVICES=<gpu_id> python test.py \
 
 ## Output
 * 結果存於 ./result/<save_path>/score
+* 資料夾內的 pred.pkl, gt.pkl 為每筆資料的 prediction & ground-truth
+* loading 方法
+```python=
+import pickle
+
+f = open(path_to_pkl, 'rb')
+res = pickle.load(f)
+
+print(res)
+```
