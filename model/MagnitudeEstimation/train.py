@@ -234,10 +234,11 @@ if __name__ == '__main__':
             with open('./eqt/regularization_layer.txt', 'r') as f:
                 eqt_reg = f.readlines()
 
+        total_params = sum(p.numel() for p in model.parameters())
         trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        logging.info('trainable parameters: %d' %(trainable))
-        print('trainable parameters: %d' %(trainable))
-        f.write('trainable parameters: %d\n' %(trainable))
+        logging.info('Total / trainable parameters: %d' %(total_params, trainable))
+        print('Total / trainable parameters: %d' %(total_params, trainable))
+        f.write('Total / trainable parameters: %d' %(total_params, trainable))
 
         print('loading optimizer & scheduler...')
         if opt.noam:
