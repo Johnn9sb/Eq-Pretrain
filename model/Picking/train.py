@@ -225,6 +225,12 @@ optimizer = torch.optim.Adam(model.parameters(), lr=decoder_lr)
 print("Model Complete!!!")
 total_params = sum(p.numel() for p in model.parameters())
 print(f"Total parameters: {total_params}")
+w2v_params = sum(p.numel() for name, p in model.named_parameters() if 'w2v' in name)
+print(f"W2v params: {w2v_params}")
+decoder_params = sum(p.numel() for name, p in model.named_parameters() if 'w2v' not in name)
+print(f"Decoder params: {decoder_params}")
+
+
 end_time = time.time()
 elapsed_time = end_time - start_time
 print("=====================================================")
