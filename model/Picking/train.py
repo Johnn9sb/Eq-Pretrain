@@ -1,15 +1,16 @@
 import os
 import sys
-import hydra
 import torch
 import argparse
 # =========================================================================================================
 import seisbench.data as sbd
 import seisbench.generate as sbg
 import numpy as np
+import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from torch.nn.parallel import DataParallel
+from torch.optim import lr_scheduler
 from tqdm import tqdm
 import time
 from model import Wav2vec_Pick
@@ -21,10 +22,14 @@ parser.add_argument(
     default='test',
     help='Checkpoint name',
 )
-
+parser.add_argument(
+    '--checkpoint_path',
+    default='',
+    help='Pretrain weight path'
+)
 parser.add_argument(
     '--batch_size', 
-    default=32,
+    default=128,
     type=int,
     help='Training batch size',
 )
@@ -167,6 +172,9 @@ def test_loop(dataloader,win_len):
     print(f"Test avg loss: {test_loss:>8f} \n")
     return test_loss
 
+def lr_lambda(epoch):
+    return 0.95 ** epoch
+
 print("Function load Complete!!!")
 # =========================================================================================================
 # Init
@@ -205,10 +213,19 @@ dev_loader = DataLoader(dev_gene,batch_size=args.batch_size, shuffle=False, num_
 print("Dataloader Complete!!!")
 # =========================================================================================================
 # Wav2vec model load
-model = Wav2vec_Pick(
-    device=device,
-    decoder_type=args.decoder_type,
-)
+if args.checkpoint_path != '':
+    checkpoint_path = args.checkpoint_path
+    print(checkpoint_path)
+    model = Wav2vec_Pick(
+        device=device,
+        decoder_type=args.decoder_type,
+        checkpoint_path=checkpoint_path,
+    )
+else:
+    model = Wav2vec_Pick(
+        device=device,
+        decoder_type=args.decoder_type,
+    )
 
 if parl == 'y':
     num_gpus = torch.cuda.device_count()
@@ -221,6 +238,7 @@ model.to(device)
 model.cuda(); 
 model.train()
 optimizer = torch.optim.Adam(model.parameters(), lr=decoder_lr)
+scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
 
 print("Model Complete!!!")
 total_params = sum(p.numel() for p in model.parameters())
@@ -250,8 +268,10 @@ for t in range(args.epochs):
     testloss_log.append(t)
     # Train loop for one epoch
     train_loop(train_loader,window)
+    scheduler.step()
     now_loss = test_loop(dev_loader,window)
     testloss_log.append(now_loss)
+    
     torch.save(model.state_dict(),model_path+'/last_checkpoint.pt')
     if(now_loss < lowest_loss):
         lowest_loss = now_loss
@@ -262,7 +282,7 @@ for t in range(args.epochs):
         save_point = save_point + 1
     if(save_point > early_stop):
         break
-
+    
     Epoend_time = time.time()
     elapsed_time = Epoend_time - Epoch_time
     print("=====================================================")

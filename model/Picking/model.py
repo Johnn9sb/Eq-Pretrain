@@ -15,7 +15,6 @@ class Wav2vec_Pick(nn.Module):
         if checkpoint_path != 'None':
             checkpoint = torch.load(checkpoint_path, map_location=device)
             self.w2v.load_state_dict(checkpoint['model'], strict=True)
-        
         self.decoder_type = decoder_type
         self.dropout = nn.Dropout(0.1)
         self.sigmoid = nn.Sigmoid()
@@ -55,6 +54,7 @@ class Wav2vec_Pick(nn.Module):
         # Wav2Vec frozen
         with torch.no_grad():
             x = self.w2v(x)
+        # print(x.shape)
         if self.decoder_type == 'linear':
             x = self.Li_1(x.permute(0,2,1))
             x = self.Li_1_5(x.permute(0,2,1))
