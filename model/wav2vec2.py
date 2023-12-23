@@ -59,11 +59,11 @@ class Wav2Vec2Config(FairseqDataclass):
     )
     encoder_ffn_embed_dim: int = field(
         # default=3072, metadata={"help": "encoder embedding dimension for FFN"}
-        default=256, metadata={"help": "encoder embedding dimension for FFN"}
+        default=512, metadata={"help": "encoder embedding dimension for FFN"}
     )
     encoder_attention_heads: int = field(
         # default=12, metadata={"help": "num encoder attention heads"}
-        default=4, metadata={"help": "num encoder attention heads"}
+        default=8, metadata={"help": "num encoder attention heads"}
     )
     activation_fn: ChoiceEnum(utils.get_available_activation_fns()) = field(
         default="gelu", metadata={"help": "activation function to use"}
@@ -112,7 +112,10 @@ class Wav2Vec2Config(FairseqDataclass):
         
         # default="[(128, 3, 1)]",  # 1st Method
         # default="[(10,11,1)] + [(20,11,1)] + [(40,11,1)]",  # 2nd Method
-        default="[(64,3,2)]", # 3rd Method
+        # default="[(64,3,2)]", # 3rd Method
+
+        default = "[(128,3,2)] * 2",
+        # default = "[(128,9,2)] + [(128,7,2)] + [(128,5,1)] + [(128,3,1)]",
 
         metadata={
             "help": "string describing convolutional feature extraction layers in form of a python list that contains "
@@ -669,7 +672,7 @@ class Wav2Vec2Model(BaseFairseqModel):
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         model_type = 'infer'  # train, infer
         if model_type == 'infer':
-            infer_type = 'final'  # cen, final, train
+            infer_type = 'cen'  # cen, final, train
         elif model_type == 'train':
             infer_type = ''
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

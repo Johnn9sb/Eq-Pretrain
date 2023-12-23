@@ -15,7 +15,12 @@ import time
 from model import Wav2vec_Pick
 # =========================================================================================================
 # Parameter
-parser = argparse.ArgumentParser(description='Training hyperparameter')
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '--model_name',
+    default='test',
+    help='Checkpoint name',
+)
 
 parser.add_argument(
     '--batch_size', 
@@ -28,6 +33,12 @@ parser.add_argument(
     default=4,
     type=int,
     help='Training num workers',
+)
+parser.add_argument(
+    '--epochs',
+    default=200,
+    type=int,
+    help='Training epochs'
 )
 parser.add_argument(
     '--test_mode',
@@ -44,14 +55,17 @@ parser.add_argument(
     default='true',
     help='Input n to disable noise data'
 )
-
+parser.add_argument(
+    '--decoder_type',
+    default='linear',
+    help='linear,cnn,transformer',
+)
 args = parser.parse_args()
 
 # main
 # ptime = 500
-model_name = '11_29_12d128_scratch'
+model_name = args.model_name
 method = '12d128'  # 1st, 2nd, 3rd, cnn3, 12d64, 12d128, 6d128
-epochs = 300
 decoder_lr = 0.0005
 window = 3000
 early_stop = 10
@@ -76,12 +90,12 @@ tsm = sbd.WaveformDataset('/work/u3601026/dataset/tsmip/',sampling_rate=100)
 t_mask = tsm.metadata["trace_completeness"] == 1
 tsm.filter(t_mask)
 t_train, t_dev, _ = tsm.train_dev_test()
-if noise_need == 'true':
+if args.noise_need == 'true':
     noise = sbd.WaveformDataset("/work/u3601026/dataset/cwbsn_noise",sampling_rate=100)
     n_train, n_dev, _ = noise.train_dev_test()
     train = c_train + t_train + n_train
     dev = c_dev + t_dev + n_dev
-elif noise_need == 'false':
+elif args.noise_need == 'false':
     train = c_train + t_train
     dev = c_dev + t_dev
 train_len = len(train)
@@ -191,8 +205,9 @@ dev_loader = DataLoader(dev_gene,batch_size=args.batch_size, shuffle=False, num_
 print("Dataloader Complete!!!")
 # =========================================================================================================
 # Wav2vec model load
-model_w2v = Wav2vec_Pick(
-    device=device
+model = Wav2vec_Pick(
+    device=device,
+    decoder_type=args.decoder_type,
 )
 
 if parl == 'y':
@@ -223,7 +238,7 @@ save_point = 0
 print("Training start!!!")
 start_time = time.time()
 i = 0
-for t in range(epochs):
+for t in range(args.epochs):
     print(f"Epoch {t+1}\n-------------------------------")
     Epoch_time = time.time()
     testloss_log.append(t)
