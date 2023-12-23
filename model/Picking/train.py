@@ -2,6 +2,7 @@ import os
 import sys
 import hydra
 import torch
+import argparse
 # =========================================================================================================
 import seisbench.data as sbd
 import seisbench.generate as sbg
@@ -13,15 +14,43 @@ from tqdm import tqdm
 import time
 from model import Wav2vec_Pick
 # =========================================================================================================
+# Parameter
+parser = argparse.ArgumentParser(description='Training hyperparameter')
+
+parser.add_argument(
+    '--batch_size', 
+    default=32,
+    type=int,
+    help='Training batch size',
+)
+parser.add_argument(
+    '--num_workers',
+    default=4,
+    type=int,
+    help='Training num workers',
+)
+parser.add_argument(
+    '--test_mode',
+    default='false',
+    help='Input true to enter test mode'
+)
+parser.add_argument(
+    '--resume',
+    default='false',
+    help='Input true to enter resume mode'
+)
+parser.add_argument(
+    '--noise_need',
+    default='true',
+    help='Input n to disable noise data'
+)
+
+args = parser.parse_args()
+
 # main
-test_mode = ''  # true                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
 # ptime = 500
-method = '12d128'  # 1st, 2nd, 3rd, cnn3, 12d64, 12d128, 6d128
-noise_need = 'y'   # y, n
-resume = ''  # true
 model_name = '11_29_12d128_scratch'
-batch_size = 16
-num_workers = 16
+method = '12d128'  # 1st, 2nd, 3rd, cnn3, 12d64, 12d128, 6d128
 epochs = 300
 decoder_lr = 0.0005
 window = 3000
@@ -47,12 +76,12 @@ tsm = sbd.WaveformDataset('/work/u3601026/dataset/tsmip/',sampling_rate=100)
 t_mask = tsm.metadata["trace_completeness"] == 1
 tsm.filter(t_mask)
 t_train, t_dev, _ = tsm.train_dev_test()
-if noise_need == 'y':
+if noise_need == 'true':
     noise = sbd.WaveformDataset("/work/u3601026/dataset/cwbsn_noise",sampling_rate=100)
     n_train, n_dev, _ = noise.train_dev_test()
     train = c_train + t_train + n_train
     dev = c_dev + t_dev + n_dev
-elif noise_need == 'n':
+elif noise_need == 'false':
     train = c_train + t_train
     dev = c_dev + t_dev
 train_len = len(train)
@@ -97,7 +126,7 @@ def train_loop(dataloader,win_len):
         loss.backward()
         optimizer.step()
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if test_mode == 'true':
+        if args.test_mode == 'true':
             break
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 def test_loop(dataloader,win_len):
@@ -117,7 +146,7 @@ def test_loop(dataloader,win_len):
         progre.set_postfix({'Test': '{:.5f}'.format(test_loss)})
         
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        if test_mode == 'true':
+        if args.test_mode == 'true':
                 break
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     test_loss = test_loss / num_batches
@@ -145,7 +174,7 @@ phase_dict = {
     "trace_Sn_arrival_sample": "S",
 }
 augmentations = [
-    sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=9000, selection="first", strategy="pad"),
+    sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
     sbg.RandomWindow(windowlen=window, strategy="pad"),
     # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
     sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
@@ -155,10 +184,10 @@ augmentations = [
 ]
 train_gene = sbg.GenericGenerator(train)
 train_gene.add_augmentations(augmentations)
-train_loader = DataLoader(train_gene,batch_size=batch_size, shuffle=True, num_workers=num_workers,pin_memory=True)
+train_loader = DataLoader(train_gene,batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers,pin_memory=True)
 dev_gene = sbg.GenericGenerator(dev)
 dev_gene.add_augmentations(augmentations)
-dev_loader = DataLoader(dev_gene,batch_size=batch_size, shuffle=False, num_workers=num_workers,pin_memory=True)
+dev_loader = DataLoader(dev_gene,batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers,pin_memory=True)
 print("Dataloader Complete!!!")
 # =========================================================================================================
 # Wav2vec model load
@@ -171,7 +200,7 @@ if parl == 'y':
     if num_gpus > 0:
         gpu_indices = list(range(num_gpus))
     model = DataParallel(model, device_ids=gpu_indices)
-if resume == 'true':
+if args.resume == 'true':
     model.load_state_dict(torch.load(checkpoint))
 model.to(device)
 model.cuda(); 
@@ -219,7 +248,7 @@ for t in range(epochs):
     print(f"Epoch time: {elapsed_time} sec")
     print("=====================================================")
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    if test_mode == 'true':
+    if args.test_mode == 'true':
         break
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 end_time = time.time()
