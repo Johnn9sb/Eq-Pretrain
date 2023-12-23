@@ -129,6 +129,9 @@ def label_gen(label):
     return label
 
 def train_loop(dataloader,win_len):
+    num_batches = len(dataloader)
+    train_loss = 0
+    train_loss = float(train_loss)
     progre = tqdm(enumerate(dataloader),total=len(dataloader),ncols=120)
     for batch_id, batch in progre:
         # General 
@@ -144,10 +147,14 @@ def train_loop(dataloader,win_len):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
+        train_loss = train_loss + loss.item()
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if args.test_mode == 'true':
             break
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    train_loss = train_loss / num_batches
+    print(f"Train avg loss: {train_loss:>8f} \n")
+
 def test_loop(dataloader,win_len):
 
     num_batches = len(dataloader)

@@ -22,7 +22,7 @@ class Wav2vec_Pick(nn.Module):
 
         if decoder_type == 'linear':
             self.Li_1 = nn.Sequential(
-                nn.Linear(in_features=750, out_features=1500),
+                nn.Linear(in_features=745, out_features=1500),
                 nn.BatchNorm1d(num_features=128),
                 nn.ReLU(),
                 nn.Dropout(p=0.1)

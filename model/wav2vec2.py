@@ -114,8 +114,8 @@ class Wav2Vec2Config(FairseqDataclass):
         # default="[(10,11,1)] + [(20,11,1)] + [(40,11,1)]",  # 2nd Method
         # default="[(64,3,2)]", # 3rd Method
 
-        default = "[(128,3,2)] * 2",
-        # default = "[(128,9,2)] + [(128,7,2)] + [(128,5,1)] + [(128,3,1)]",
+        # default = "[(128,3,2)] * 2",
+        default = "[(128,9,2)] + [(128,7,2)] + [(128,5,1)] + [(128,3,1)]",
 
         metadata={
             "help": "string describing convolutional feature extraction layers in form of a python list that contains "
