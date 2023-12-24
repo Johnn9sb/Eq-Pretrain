@@ -236,9 +236,9 @@ if __name__ == '__main__':
 
         total_params = sum(p.numel() for p in model.parameters())
         trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        logging.info('Total / trainable parameters: %d' %(total_params, trainable))
-        print('Total / trainable parameters: %d' %(total_params, trainable))
-        f.write('Total / trainable parameters: %d' %(total_params, trainable))
+        logging.info('Total / trainable parameters: %d / %d' %(total_params, trainable))
+        print('Total / trainable parameters: %d / %d' %(total_params, trainable))
+        f.write('Total / trainable parameters: %d / %d' %(total_params, trainable))
 
         print('loading optimizer & scheduler...')
         if opt.noam:
