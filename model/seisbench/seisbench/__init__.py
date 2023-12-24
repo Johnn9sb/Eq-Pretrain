@@ -9,7 +9,7 @@ __all__ = ["cache_root", "__version__", "config"]
 # cache_root = _Path(
 #     _os.getenv("SEISBENCH_CACHE_ROOT", _Path(_Path.home(), ".seisbench"))
 # )
-cache_root = _Path("/mnt/disk4/weiwei/seismic_datasets/seisbench_cache/")
+cache_root = _Path("/work/u3601026/seisbench_cache")
 
 remote_root = "https://dcache-demo.desy.de:2443/Helmholtz/HelmholtzAI/SeisBench/"
 

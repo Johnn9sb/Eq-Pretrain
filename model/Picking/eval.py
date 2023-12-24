@@ -60,10 +60,16 @@ parser.add_argument(
     type=float,
     help='Picking threshold'
 )
+parser.add_argument(
+    '--test_set',
+    default='test',
+    help='test or dev',
+)
 args = parser.parse_args()
 
 threshold = args.threshold
 model_name = args.model_name
+print(model_name)
 ptime = 500
 window = 3000
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -90,20 +96,28 @@ start_time = time.time()
 cwb = sbd.WaveformDataset('/work/u3601026/dataset/cwbsn',sampling_rate=100)
 c_mask = cwb.metadata["trace_completeness"] > 3
 cwb.filter(c_mask)
-_, _, c_test = cwb.train_dev_test()
+_, c_dev, c_test = cwb.train_dev_test()
 # TSMIP load
 tsm = sbd.WaveformDataset('/work/u3601026/dataset/tsmip',sampling_rate=100)
 t_mask = tsm.metadata["trace_completeness"] == 1
 tsm.filter(t_mask)
-_, _, t_test = tsm.train_dev_test()
+_, t_dev, t_test = tsm.train_dev_test()
 # NOISE load
 # Combine
-if args.noise_need == 'true':        
-    noise = sbd.WaveformDataset("/work/u3601026/dataset/cwbsn_noise",sampling_rate=100)
-    _, _, n_test = noise.train_dev_test()
-    test = c_test + t_test + n_test
-elif args.noise_need == 'false':
-    test = c_test + t_test
+if args.test_set == 'test':
+    if args.noise_need == 'true':        
+        noise = sbd.WaveformDataset("/work/u3601026/dataset/cwbsn_noise",sampling_rate=100)
+        _, n_dev, n_test = noise.train_dev_test()
+        test = c_test + t_test + n_test
+    elif args.noise_need == 'false':
+        test = c_test + t_test
+elif args.test_set == 'dev':
+    if args.noise_need == 'true':        
+        noise = sbd.WaveformDataset("/work/u3601026/dataset/cwbsn_noise",sampling_rate=100)
+        _, n_dev, n_test = noise.train_dev_test()
+        test = c_dev + t_dev + n_dev
+    elif args.noise_need == 'false':
+        test = c_dev + t_dev
 end_time = time.time()
 elapsed_time = end_time - start_time
 print("=====================================================")

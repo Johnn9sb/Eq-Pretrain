@@ -56,7 +56,8 @@ parser.add_argument(
 args = parser.parse_args()
 
 test_name = 'pick_threshold'
-model_name = '12_23_mask7_cnn2'
+model_name = args.model_name
+print(model_name)
 ptime = 500
 window = 3000
 parl = 'y'  # y,n
