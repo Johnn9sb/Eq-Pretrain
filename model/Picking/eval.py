@@ -75,7 +75,6 @@ window = 3000
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 parl = 'y'  # y,n
 # =========================================================================================================
-print(model_name)
 test_name = 'threshold=' + str(threshold) + '_eval'
 model_path = '/work/u3601026/fairseq-main/eq2vec/checkpoint/'+ model_name
 threshold_path = model_path + '/' + test_name + '.txt'
@@ -223,6 +222,10 @@ model.eval()
 print("Model Complete!!!")
 total_params = sum(p.numel() for p in model.parameters())
 print(f"Total parameters: {total_params}")
+w2v_params = sum(p.numel() for name, p in model.named_parameters() if 'w2v' in name)
+print(f"W2v params: {w2v_params}")
+decoder_params = sum(p.numel() for name, p in model.named_parameters() if 'w2v' not in name)
+print(f"Decoder params: {decoder_params}")
 end_time = time.time()
 elapsed_time = end_time - start_time
 print("=====================================================")
