@@ -78,7 +78,7 @@ parl = 'y'  # y,n
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(model_name)
 # =========================================================================================================
-model_path = '/work/u3601026/fairseq-main/eq2vec/checkpoint/'+ model_name
+model_path = '/mnt/nas5/johnn9/checkpoint/'+ model_name
 checkpoint = model_path+'/best_checkpoint.pt'
 if not os.path.isdir(model_path):
     os.mkdir(model_path)
@@ -87,16 +87,16 @@ print("Init Complete!!!")
 # =========================================================================================================
 # DataLoad
 start_time = time.time()
-cwb = sbd.WaveformDataset('/work/u3601026/dataset/cwbsn',sampling_rate=100)
+cwb = sbd.WaveformDataset("/mnt/nas2/weiwei/seisbench_cache/datasets/cwbsn/",sampling_rate=100)
 c_mask = cwb.metadata["trace_completeness"] == 4
 cwb.filter(c_mask)
 c_train, c_dev, _ = cwb.train_dev_test()
-tsm = sbd.WaveformDataset('/work/u3601026/dataset/tsmip/',sampling_rate=100)
+tsm = sbd.WaveformDataset("/mnt/nas2/weiwei/seisbench_cache/datasets/tsmip/",sampling_rate=100)
 t_mask = tsm.metadata["trace_completeness"] == 1
 tsm.filter(t_mask)
 t_train, t_dev, _ = tsm.train_dev_test()
 if args.noise_need == 'true':
-    noise = sbd.WaveformDataset("/work/u3601026/dataset/cwbsn_noise",sampling_rate=100)
+    noise = sbd.WaveformDataset("/mnt/nas2/weiwei/seisbench_cache/datasets/cwbsn_noise/",sampling_rate=100)
     n_train, n_dev, _ = noise.train_dev_test()
     train = c_train + t_train + n_train
     dev = c_dev + t_dev + n_dev
@@ -132,7 +132,7 @@ def train_loop(dataloader,win_len):
     num_batches = len(dataloader)
     train_loss = 0
     train_loss = float(train_loss)
-    progre = tqdm(enumerate(dataloader),total=len(dataloader),ncols=120)
+    progre = tqdm(enumerate(dataloader),total=len(dataloader),ncols=100)
     for batch_id, batch in progre:
         # General 
         x = batch['X'].to(device)
@@ -160,7 +160,7 @@ def test_loop(dataloader,win_len):
     num_batches = len(dataloader)
     test_loss = 0
     test_loss = float(test_loss)
-    progre = tqdm(dataloader,total=len(dataloader), ncols=120)
+    progre = tqdm(dataloader,total=len(dataloader), ncols=100)
     for batch in progre:
         x = batch['X'].to(device)
         y = batch['y'].to(device)

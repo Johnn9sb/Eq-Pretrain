@@ -6,8 +6,11 @@ This implementation is currently designed for inference purposes only and is not
 Please note that the current version supports inference functionalities exclusively.
 
 ## Pre-trained models
-Download Link: [download](https://drive.google.com/file/d/1QRpMPg4Q-gOQpfDoS5NbmiVzIMb6njS9/view?usp=sharing)
+You need to download the pre-trained weights and input the savepath of the weights into the required model to perform fine-tuning.
 
+(CNN*2 Mask=5)Download Link: [download](https://drive.google.com/file/d/1sXjPTJ5Y8bNmJERgkAUZx7BLOTsrbeFP/view?usp=sharing)
+
+(Old)Download Link: [download](https://drive.google.com/file/d/1QRpMPg4Q-gOQpfDoS5NbmiVzIMb6njS9/view?usp=sharing)
 
 ## Requirements and Installation
 + [PyTorch](https://pytorch.org/) version >= 1.10.0

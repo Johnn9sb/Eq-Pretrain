@@ -55,11 +55,11 @@ class Wav2Vec2Config(FairseqDataclass):
     )
     encoder_embed_dim: int = field(
         # default=768, metadata={"help": "encoder embedding dimension"}
-        default=128, metadata={"help": "encoder embedding dimension"}
+        default=256, metadata={"help": "encoder embedding dimension"}
     )
     encoder_ffn_embed_dim: int = field(
         # default=3072, metadata={"help": "encoder embedding dimension for FFN"}
-        default=512, metadata={"help": "encoder embedding dimension for FFN"}
+        default=1024, metadata={"help": "encoder embedding dimension for FFN"}
     )
     encoder_attention_heads: int = field(
         # default=12, metadata={"help": "num encoder attention heads"}
@@ -95,7 +95,7 @@ class Wav2Vec2Config(FairseqDataclass):
 
     final_dim: int = field(
         # default=0,
-        default=128,
+        default=256,
         metadata={
             "help": "project final representations and targets to this many dimensions."
             "set to encoder_embed_dim is <= 0"
@@ -114,9 +114,9 @@ class Wav2Vec2Config(FairseqDataclass):
         # default="[(10,11,1)] + [(20,11,1)] + [(40,11,1)]",  # 2nd Method
         # default="[(64,3,2)]", # 3rd Method
 
-        default = "[(128,3,2)] * 2",
-        # default = "[(128,9,2)] + [(128,7,2)] + [(128,5,1)] + [(128,3,1)]",
-
+        default = "[(256,3,2)] * 2",
+        # default = "[(256,9,2)] + [(256,7,2)] + [(256,5,1)] + [(256,3,1)]",
+        
         metadata={
             "help": "string describing convolutional feature extraction layers in form of a python list that contains "
             "[(dim, kernel_size, stride), ...]"
