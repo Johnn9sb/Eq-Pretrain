@@ -113,14 +113,13 @@ print("Data loading complete!!!")
 # =========================================================================================================
 # Funtion
 start_time = time.time()
-def loss_fn(x,y):
+def loss_fn(x,y,win):
     
     y = y.to(torch.float32)
-    weight = torch.ones(y.shape)
-    weight[y>0] = 5.0
-    loss_cal = nn.BCELoss()
-    loss = loss_cal(x,y)
-    loss = loss * weight
+    weight = torch.ones_like(y)
+    weight[y > 0] = 1.0
+    loss_cal = nn.BCELoss(weight=weight)
+    loss = loss_cal(x, y)
     return loss
 
 def label_gen(label):
