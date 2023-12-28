@@ -116,8 +116,11 @@ start_time = time.time()
 def loss_fn(x,y):
     
     y = y.to(torch.float32)
-    loss_cal = nn.BCELoss(reduction='mean')
+    weight = torch.ones(y.shape)
+    weight[y>0] = 5.0
+    loss_cal = nn.BCELoss()
     loss = loss_cal(x,y)
+    loss = loss * weight
     return loss
 
 def label_gen(label):
