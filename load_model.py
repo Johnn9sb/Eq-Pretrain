@@ -4,7 +4,7 @@ import torch
 from model.wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
 w2v = Wav2Vec2Model(Wav2Vec2Config)
 
-checkpoint = torch.load('/mnt/nas3/johnn9/Eq-Pretrain/pretrain/pretrainmask5/pretrainmask5.pt')
+checkpoint = torch.load('/mnt/disk4/johnn9/Eq-Pretrain/pretrain/pretrainmask5/pretrainmask5.pt')
 w2v.load_state_dict(checkpoint['model'], strict=True)
 
 print(w2v)

@@ -13,16 +13,16 @@ You need to download the pre-trained weights and input the savepath of the weigh
 (Old)Download Link: [download](https://drive.google.com/file/d/1QRpMPg4Q-gOQpfDoS5NbmiVzIMb6njS9/view?usp=sharing)
 
 ## Requirements and Installation
+```
+git clone https://github.com/Johnn9sb/Eq-Pretrain.git
+```
 + [PyTorch](https://pytorch.org/) version >= 1.10.0
-```
-pip install -r requirements.txt
-```
 + Python version >= 3.8
 + To install and develop this implementation locally:
 ```
-git clone https://github.com/Johnn9sb/Eq-Pretrain.git
 cd Eq-Pretrain
+pip install -r requirements.txt
 pip install --editable ./model/fairseq/
 ```
-+ If there is a need to load the model, the corresponding method can be found in the `load_model.py` file.
++ If there is a need to test whether the environment installation is successful, the corresponding method can be found in the `load_model.py` file.
 
