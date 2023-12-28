@@ -78,7 +78,11 @@ parl = 'y'  # y,n
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(model_name)
 # =========================================================================================================
-model_path = '/mnt/nas5/johnn9/checkpoint/'+ model_name
+cwb_path = "/mnt/nas5/johnn9/dataset/cwbsn/"
+tsm_path = "/mnt/nas5/johnn9/dataset/tsmip/"
+noi_path = "/mnt/nas5/johnn9/dataset/cwbsn_noise/"
+mod_path = "/mnt/nas3/johnn9/checkpoint/"
+model_path = mod_path + model_name
 checkpoint = model_path+'/best_checkpoint.pt'
 if not os.path.isdir(model_path):
     os.mkdir(model_path)
@@ -87,16 +91,16 @@ print("Init Complete!!!")
 # =========================================================================================================
 # DataLoad
 start_time = time.time()
-cwb = sbd.WaveformDataset("/mnt/nas2/weiwei/seisbench_cache/datasets/cwbsn/",sampling_rate=100)
+cwb = sbd.WaveformDataset(cwb_path,sampling_rate=100)
 c_mask = cwb.metadata["trace_completeness"] == 4
 cwb.filter(c_mask)
 c_train, c_dev, _ = cwb.train_dev_test()
-tsm = sbd.WaveformDataset("/mnt/nas2/weiwei/seisbench_cache/datasets/tsmip/",sampling_rate=100)
+tsm = sbd.WaveformDataset(tsm_path,sampling_rate=100)
 t_mask = tsm.metadata["trace_completeness"] == 1
 tsm.filter(t_mask)
 t_train, t_dev, _ = tsm.train_dev_test()
 if args.noise_need == 'true':
-    noise = sbd.WaveformDataset("/mnt/nas2/weiwei/seisbench_cache/datasets/cwbsn_noise/",sampling_rate=100)
+    noise = sbd.WaveformDataset(noi_path,sampling_rate=100)
     n_train, n_dev, _ = noise.train_dev_test()
     train = c_train + t_train + n_train
     dev = c_dev + t_dev + n_dev
