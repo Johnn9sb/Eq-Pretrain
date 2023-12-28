@@ -117,7 +117,7 @@ print("Data loading complete!!!")
 # =========================================================================================================
 # Funtion
 start_time = time.time()
-def loss_fn(x,y,win):
+def loss_fn(x,y):
     
     y = y.to(torch.float32)
     weight = torch.ones_like(y)

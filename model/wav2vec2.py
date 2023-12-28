@@ -114,8 +114,8 @@ class Wav2Vec2Config(FairseqDataclass):
         # default="[(10,11,1)] + [(20,11,1)] + [(40,11,1)]",  # 2nd Method
         # default="[(64,3,2)]", # 3rd Method
 
-        default = "[(256,3,2)] * 2",
-        # default = "[(256,9,2)] + [(256,7,2)] + [(256,5,1)] + [(256,3,1)]",
+        # default = "[(256,3,2)] * 2",
+        default = "[(256,9,2)] + [(256,7,2)] + [(256,5,1)] + [(256,3,1)]",
         
         metadata={
             "help": "string describing convolutional feature extraction layers in form of a python list that contains "
@@ -889,8 +889,11 @@ class ConvFeatureExtractionModel(nn.Module):
             conv_bias=False,
         ):
             def make_conv():
-                # conv = nn.Conv1d(n_in, n_out, k, stride=stride, bias=conv_bias, padding='same', padding_mode='replicate')  # 1st Method, 2nd Method
-                conv = nn.Conv1d(n_in, n_out, k, stride=stride, bias=conv_bias, padding=1, padding_mode='replicate')  # 3rd Method
+                # conv = nn.Conv1d(n_in, n_out, k, stride=stride, bias=conv_bias)
+                if (stride == 2):
+                    conv = nn.Conv1d(n_in, n_out, k, stride=stride, bias=conv_bias, padding=(k-1)//2, padding_mode='replicate')
+                elif (stride == 1):
+                    conv = nn.Conv1d(n_in, n_out, k, stride=stride, bias=conv_bias, padding='same', padding_mode='replicate')  # 3rd Method     
                 nn.init.kaiming_normal_(conv.weight)
                 return conv
 
