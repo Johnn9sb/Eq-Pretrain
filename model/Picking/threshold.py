@@ -13,6 +13,9 @@ from torch.nn.parallel import DataParallel
 from tqdm import tqdm
 import time
 from model import Wav2vec_Pick
+import logging
+logging.getLogger().setLevel(logging.WARNING)
+
 # =========================================================================================================
 # Parameter init
 parser = argparse.ArgumentParser()
@@ -64,23 +67,27 @@ parl = 'y'  # y,n
 threshold = [0.1,0.2,0.3,0.4,0.5,0.6]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # =========================================================================================================
-model_path = '/work/u3601026/fairseq-main/eq2vec/checkpoint/'+ model_name
+cwb_path = "/mnt/nas5/johnn9/dataset/cwbsn/"
+tsm_path = "/mnt/nas5/johnn9/dataset/tsmip/"
+noi_path = "/mnt/nas5/johnn9/dataset/cwbsn_noise/"
+mod_path = "/mnt/nas3/johnn9/checkpoint/"
+model_path = mod_path + model_name
 threshold_path = model_path + '/' + test_name + '.txt'
 loadmodel = model_path + '/' + 'best_checkpoint.pt' 
 print("Init Complete!!!")
 # =========================================================================================================
 # DataLoad
 start_time = time.time()
-cwb = sbd.WaveformDataset('/work/u3601026/dataset/cwbsn',sampling_rate=100)
+cwb = sbd.WaveformDataset(cwb_path,sampling_rate=100)
 c_mask = cwb.metadata["trace_completeness"] > 3
 cwb.filter(c_mask)
 _, c_dev, _ = cwb.train_dev_test()
-tsm = sbd.WaveformDataset('/work/u3601026/dataset/tsmip',sampling_rate=100)
+tsm = sbd.WaveformDataset(tsm_path,sampling_rate=100)
 t_mask = tsm.metadata["trace_completeness"] == 1
 tsm.filter(t_mask)
 _, t_dev, _ = tsm.train_dev_test()
 if args.noise_need == 'true':
-    noise = sbd.WaveformDataset("/work/u3601026/dataset/cwbsn_noise",sampling_rate=100)
+    noise = sbd.WaveformDataset(noi_path,sampling_rate=100)
     _, n_dev, _ = noise.train_dev_test()
     dev = c_dev + t_dev + n_dev
 elif args.noise_need == 'false':
@@ -174,7 +181,7 @@ for thres in threshold:
     p_tp,p_tn,p_fp,p_fn = 0,0,0,0
     s_tp,s_tn,s_fp,s_fn = 0,0,0,0
 
-    progre = tqdm(dev_loader, total=len(dev_loader), ncols=120)
+    progre = tqdm(dev_loader, total=len(dev_loader), ncols=80)
     for batch in progre:
         x = batch['X'].to(device)
         y = batch['y'].to(device)

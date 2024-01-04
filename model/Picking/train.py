@@ -14,66 +14,17 @@ from torch.optim import lr_scheduler
 from tqdm import tqdm
 import time
 from model import Wav2vec_Pick
+from utils import parse_arguments
+import logging
+logging.getLogger().setLevel(logging.WARNING)
 # =========================================================================================================
-# Parameter
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    '--model_name',
-    default='test',
-    help='Checkpoint name',
-)
-parser.add_argument(
-    '--checkpoint_path',
-    default='',
-    help='Pretrain weight path'
-)
-parser.add_argument(
-    '--batch_size', 
-    default=128,
-    type=int,
-    help='Training batch size',
-)
-parser.add_argument(
-    '--num_workers',
-    default=4,
-    type=int,
-    help='Training num workers',
-)
-parser.add_argument(
-    '--epochs',
-    default=200,
-    type=int,
-    help='Training epochs'
-)
-parser.add_argument(
-    '--test_mode',
-    default='false',
-    help='Input true to enter test mode'
-)
-parser.add_argument(
-    '--resume',
-    default='false',
-    help='Input true to enter resume mode'
-)
-parser.add_argument(
-    '--noise_need',
-    default='true',
-    help='Input n to disable noise data'
-)
-parser.add_argument(
-    '--decoder_type',
-    default='linear',
-    help='linear,cnn,transformer',
-)
-args = parser.parse_args()
-
 # main
+args = parse_arguments()
 # ptime = 500
 model_name = args.model_name
 method = '12d128'  # 1st, 2nd, 3rd, cnn3, 12d64, 12d128, 6d128
 decoder_lr = 0.0005
 window = 3000
-early_stop = 10
 parl = 'y'  # y,n
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(model_name)
@@ -117,11 +68,11 @@ print("Data loading complete!!!")
 # =========================================================================================================
 # Funtion
 start_time = time.time()
-def loss_fn(x,y):
+def loss_fn(x,y,weight_num):
     
     y = y.to(torch.float32)
     weight = torch.ones_like(y)
-    weight[y > 0] = 1.0
+    weight[y > 0] = weight_num
     loss_cal = nn.BCELoss(weight=weight)
     loss = loss_cal(x, y)
     return loss
@@ -147,7 +98,7 @@ def train_loop(dataloader,win_len):
         batch_size = len(x)
         # Forward
         x = model(x.to(device))
-        loss = loss_fn(x.to(device),y.to(device))
+        loss = loss_fn(x.to(device),y.to(device),args.weight)
         progre.set_postfix({'Loss': '{:.5f}'.format(loss.item())})
         # Backpropagation
         optimizer.zero_grad()
@@ -173,7 +124,7 @@ def test_loop(dataloader,win_len):
         y = label_gen(y.to(device))
         with torch.no_grad():
             x = model(x.to(device))
-        test_loss1 = loss_fn(x.to(device),y.to(device)).item()
+        test_loss1 = loss_fn(x.to(device),y.to(device),args.weight).item()
         test_loss = test_loss + test_loss1
         progre.set_postfix({'Test': '{:.5f}'.format(test_loss)})
         
@@ -293,7 +244,8 @@ for t in range(args.epochs):
         torch.save(model.state_dict(),model_path+'/best_checkpoint.pt')
     else:
         save_point = save_point + 1
-    if(save_point > early_stop):
+    if(save_point > args.early_stop):
+        print("Early Stop!!!")
         break
     
     Epoend_time = time.time()

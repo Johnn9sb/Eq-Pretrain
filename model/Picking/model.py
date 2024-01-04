@@ -24,24 +24,24 @@ class Wav2vec_Pick(nn.Module):
         if decoder_type == 'linear':
             self.Li_1 = nn.Sequential(
                 nn.Linear(in_features=750, out_features=1500),
-                nn.BatchNorm1d(num_features=256),
+                nn.BatchNorm1d(num_features=768),
                 nn.ReLU(),
                 nn.Dropout(p=0.1)
             )
-            self.Li_1_5 = nn.Sequential(
-                nn.Linear(in_features=256, out_features=256),
-                nn.BatchNorm1d(num_features=1500),
-                nn.ReLU(),
-                nn.Dropout(p=0.1)
-            )
+            # self.Li_1_5 = nn.Sequential(
+            #     nn.Linear(in_features=768, out_features=768),
+            #     nn.BatchNorm1d(num_features=1500),
+            #     nn.ReLU(),
+            #     nn.Dropout(p=0.1)
+            # )
             self.Li_2 = nn.Sequential(
                 nn.Linear(in_features=1500, out_features=3000),
-                nn.BatchNorm1d(num_features=256),
+                nn.BatchNorm1d(num_features=768),
                 nn.ReLU(),
                 nn.Dropout(p=0.1)
             )
             self.Li_3 = nn.Sequential(
-                nn.Linear(in_features=256, out_features=1),
+                nn.Linear(in_features=768, out_features=1),
                 nn.BatchNorm1d(num_features=3000),
                 nn.ReLU(),
                 nn.Dropout(p=0.1)
@@ -113,8 +113,9 @@ class Wav2vec_Pick(nn.Module):
         # print(x.shape)
         if self.decoder_type == 'linear':
             x = self.Li_1(x.permute(0,2,1))
-            x = self.Li_1_5(x.permute(0,2,1))
-            x = self.Li_2(x.permute(0,2,1))
+            # x = self.Li_1_5(x.permute(0,2,1))
+            # x = self.Li_2(x.permute(0,2,1))
+            x = self.Li_2(x)
             x = self.Li_3(x.permute(0,2,1))
             x = self.Li_out(x.permute(0,2,1))
         

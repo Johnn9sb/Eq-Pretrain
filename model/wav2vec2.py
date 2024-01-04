@@ -54,16 +54,16 @@ class Wav2Vec2Config(FairseqDataclass):
         default=12, metadata={"help": "num encoder layers in the transformer"}
     )
     encoder_embed_dim: int = field(
-        # default=768, metadata={"help": "encoder embedding dimension"}
-        default=256, metadata={"help": "encoder embedding dimension"}
+        default=768, metadata={"help": "encoder embedding dimension"}
+        # default=256, metadata={"help": "encoder embedding dimension"}
     )
     encoder_ffn_embed_dim: int = field(
-        # default=3072, metadata={"help": "encoder embedding dimension for FFN"}
-        default=1024, metadata={"help": "encoder embedding dimension for FFN"}
+        default=3072, metadata={"help": "encoder embedding dimension for FFN"}
+        # default=1024, metadata={"help": "encoder embedding dimension for FFN"}
     )
     encoder_attention_heads: int = field(
-        # default=12, metadata={"help": "num encoder attention heads"}
-        default=8, metadata={"help": "num encoder attention heads"}
+        default=12, metadata={"help": "num encoder attention heads"}
+        # default=8, metadata={"help": "num encoder attention heads"}
     )
     activation_fn: ChoiceEnum(utils.get_available_activation_fns()) = field(
         default="gelu", metadata={"help": "activation function to use"}
@@ -115,8 +115,10 @@ class Wav2Vec2Config(FairseqDataclass):
         # default="[(64,3,2)]", # 3rd Method
 
         # default = "[(256,3,2)] * 2",
-        default = "[(256,9,2)] + [(256,7,2)] + [(256,5,1)] + [(256,3,1)]",
+        # default = "[(256,9,2)] + [(256,7,2)] + [(256,5,1)] + [(256,3,1)]",
+        default="[(512, 11, 2)] + [(512, 9, 2)] + [(512, 7, 1)] * 2 + [(512, 5, 1)] * 2 + [(512, 3, 1)]",
         
+
         metadata={
             "help": "string describing convolutional feature extraction layers in form of a python list that contains "
             "[(dim, kernel_size, stride), ...]"
