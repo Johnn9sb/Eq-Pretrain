@@ -60,6 +60,7 @@ def parse_arguments():
     parser.add_argument(
         '--early_stop',
         default='10',
+        type=int,
         help='Training early stop'
     )
     parser.add_argument(
