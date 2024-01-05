@@ -3,3 +3,4 @@ wheel
 cython
 numpy>=1.21.3
 torch>=1.10
+seisbench
