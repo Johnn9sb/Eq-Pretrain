@@ -68,6 +68,11 @@ def parse_arguments():
         default='BCELoss',
         help='Training Loss = BCELoss, Phasenet'
     )
+    parser.add_argument(
+        '--train_model',
+        default='wav2vec2',
+        help='wav2vec2, phasenet, eqt'
+    )
     args = parser.parse_args()
     
     return args
