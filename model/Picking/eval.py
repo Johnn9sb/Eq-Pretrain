@@ -5,6 +5,7 @@ import argparse
 # =========================================================================================================
 import seisbench.data as sbd
 import seisbench.generate as sbg
+import seisbench.models as sbm
 import numpy as np
 import torch
 import torch.nn as nn
@@ -162,11 +163,24 @@ test_loader = DataLoader(test_gene,batch_size=args.batch_size, shuffle=False, nu
 print("Dataloader Complete!!!")
 # =========================================================================================================
 # Whole model build
-model = Wav2vec_Pick(
-        device=device,
-        decoder_type=args.decoder_type,
-        checkpoint_path='None'
-)
+if args.train_model == "wav2vec2":
+    if args.checkpoint_path != '':
+        checkpoint_path = args.checkpoint_path
+        print(checkpoint_path)
+        model = Wav2vec_Pick(
+            device=device,
+            decoder_type=args.decoder_type,
+            checkpoint_path=checkpoint_path,
+        )
+    else:
+        model = Wav2vec_Pick(
+            device=device,
+            decoder_type=args.decoder_type,
+        )
+elif args.train_model == "phasenet":
+    model = sbm.PhaseNet(phases="PSN", norm="peak")
+elif args.train_model == "eqt":
+    model = sbm.EQTransformer(in_samples=window, phases='PS')
 if parl == 'y':
     num_gpus = torch.cuda.device_count()
     if num_gpus > 0:

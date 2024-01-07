@@ -83,6 +83,8 @@ def parse_arguments():
         default='0.2',
         type=float,
         help='Picking threshold'
+    )
+    parser.add_argument(
         '--train_model',
         default='wav2vec2',
         help='wav2vec2, phasenet, eqt'

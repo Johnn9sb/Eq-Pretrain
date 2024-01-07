@@ -5,6 +5,7 @@ import argparse
 # =========================================================================================================
 import seisbench.data as sbd
 import seisbench.generate as sbg
+import seisbench.models as sbm
 import numpy as np
 import torch
 import torch.nn as nn
@@ -29,10 +30,10 @@ parl = 'y'  # y,n
 threshold = [0.1,0.2,0.3,0.4,0.5,0.6]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # =========================================================================================================
-cwb_path = "/mnt/nas5/johnn9/dataset/cwbsn/"
-tsm_path = "/mnt/nas5/johnn9/dataset/tsmip/"
-noi_path = "/mnt/nas5/johnn9/dataset/cwbsn_noise/"
-mod_path = "/mnt/nas3/johnn9/checkpoint/"
+cwb_path = "/mnt/disk2/johnn9/dataset/cwbsn/"
+tsm_path = "/mnt/disk2/johnn9/dataset/tsmip/"
+noi_path = "/mnt/disk2/johnn9/dataset/cwbsn_noise/"
+mod_path = "/mnt/disk1/johnn9/checkpoint/"
 model_path = mod_path + model_name
 threshold_path = model_path + '/' + test_name + '.txt'
 loadmodel = model_path + '/' + 'best_checkpoint.pt' 
@@ -106,11 +107,25 @@ dev_loader = DataLoader(dev_gene,batch_size=args.batch_size, shuffle=False, num_
 print("Dataloader Complete!!!")
 # =========================================================================================================
 # Wav2vec model load
-model = Wav2vec_Pick(
-        device=device,
-        decoder_type=args.decoder_type,
-        checkpoint_path='None'
-)
+if args.train_model == "wav2vec2":
+    if args.checkpoint_path != '':
+        checkpoint_path = args.checkpoint_path
+        print(checkpoint_path)
+        model = Wav2vec_Pick(
+            device=device,
+            decoder_type=args.decoder_type,
+            checkpoint_path=checkpoint_path,
+        )
+    else:
+        model = Wav2vec_Pick(
+            device=device,
+            decoder_type=args.decoder_type,
+        )
+elif args.train_model == "phasenet":
+    model = sbm.PhaseNet(phases="PSN", norm="peak")
+
+elif args.train_model == "eqt":
+    model = sbm.EQTransformer(in_samples=window, phases='PS')
 if parl == 'y':
     num_gpus = torch.cuda.device_count()
     if num_gpus > 0:
