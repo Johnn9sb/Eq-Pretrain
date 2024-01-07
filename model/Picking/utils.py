@@ -10,7 +10,7 @@ def parse_arguments():
     )
     parser.add_argument(
         '--checkpoint_path',
-        default='',
+        default='None',
         help='Pretrain weight path'
     )
     parser.add_argument(

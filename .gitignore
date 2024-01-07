@@ -59,3 +59,4 @@ model/fairseq/examples/data2vec/tasks/__pycache__
 model/fairseq/examples/data2vec/__pycache__
 model/__pycache__
 model/Picking/__pycache__
+checkpoint.pt
