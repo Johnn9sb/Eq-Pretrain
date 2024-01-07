@@ -212,7 +212,6 @@ if args.train_model == "wav2vec2":
         )
 elif args.train_model == "phasenet":
     model = sbm.PhaseNet(phases="PSN", norm="peak")
-
 elif args.train_model == "eqt":
     model = sbm.EQTransformer(in_samples=window, phases='PS')
 

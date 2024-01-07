@@ -7,10 +7,11 @@
 CUDA_VISIBLE_DEVICES=0,1 \
 exec -a Johnn9_Finetune \
 python threshold.py \
---model_name '1_4_768_15000_linear' \
---batch_size 64 \
+--model_name 'phasenet' \
+--train_model 'phasenet' \
+--batch_size 128 \
 --num_workers 4 \
---decoder_type 'linear' \
+# --decoder_type 'linear' \
 
 # CUDA_VISIBLE_DEVICES=0 \
 # python threshold.py \
