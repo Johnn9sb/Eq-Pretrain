@@ -18,6 +18,7 @@ from model import Wav2vec_Pick
 from utils import parse_arguments
 import logging
 from datetime import datetime
+import torch.nn.functional as F
 logging.getLogger().setLevel(logging.WARNING)
 current_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 # =========================================================================================================
@@ -82,10 +83,11 @@ def loss_fn(x,y,args):
         loss = loss_cal(x, y)
     elif args.train_model == 'eqt':
         x = torch.unsqueeze(x[0], 1)
+        print(x.shape)
+        print(y.shape)
         x = x.to(torch.float16)
         y = y.to(torch.float16)
-        loss_cal = nn.BCELoss()
-        loss = loss_cal(x, y)
+        loss = F.binary_cross_entropy_with_logits(x, y)
     elif args.train_model == 'phasenet':
         loss = y * torch.log(x + 1e-5)
         loss = loss.mean(-1).sum(-1)

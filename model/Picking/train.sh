@@ -10,7 +10,7 @@
 # --test_mode 'true'
 # --weight 3.0 \
 
-CUDA_VISIBLE_DEVICES=4 \
+CUDA_VISIBLE_DEVICES=3 \
 exec -a Johnn9_Finetune \
 python train.py \
 --model_name 'eqt' \
