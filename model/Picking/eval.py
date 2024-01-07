@@ -14,61 +14,12 @@ from tqdm import tqdm
 import time
 import matplotlib.pyplot as plt
 from model import Wav2vec_Pick
+from utils import parse_arguments
 import logging
 logging.getLogger().setLevel(logging.WARNING)
 # =========================================================================================================
 # Parameter init
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    '--model_name',
-    default='test',
-    help='Checkpoint name',
-)
-parser.add_argument(
-    '--batch_size', 
-    default=128,
-    type=int,
-    help='Training batch size',
-)
-parser.add_argument(
-    '--num_workers',
-    default=4,
-    type=int,
-    help='Training num workers',
-)
-parser.add_argument(
-    '--test_mode',
-    default='false',
-    help='Input true to enter test mode'
-)
-parser.add_argument(
-    '--noise_need',
-    default='true',
-    help='Input false(true) to disable noise data'
-)
-parser.add_argument(
-    '--decoder_type',
-    default='linear',
-    help='linear,cnn,transformer',
-)
-parser.add_argument(
-    '--model_type',
-    default='onlyp',
-    help='onlyp or ps',
-)
-parser.add_argument(
-    '--threshold',
-    default='0.2',
-    type=float,
-    help='Picking threshold'
-)
-parser.add_argument(
-    '--test_set',
-    default='test',
-    help='test or dev',
-)
-args = parser.parse_args()
-
+args = parse_arguments()
 threshold = args.threshold
 model_name = args.model_name
 print(model_name)

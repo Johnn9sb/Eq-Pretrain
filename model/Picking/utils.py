@@ -68,6 +68,22 @@ def parse_arguments():
         default='BCELoss',
         help='Training Loss = BCELoss, Phasenet'
     )
+    parser.add_argument(
+        '--model_type',
+        default='onlyp',
+        help='onlyp, ps'
+    )
+    parser.add_argument(
+        '--test_set',
+        default='test',
+        help='test or dev',
+    )
+    parser.add_argument(
+        '--threshold',
+        default='0.2',
+        type=float,
+        help='Picking threshold'
+    )
     args = parser.parse_args()
     
     return args
