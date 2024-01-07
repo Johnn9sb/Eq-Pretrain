@@ -5,6 +5,7 @@ import argparse
 # =========================================================================================================
 import seisbench.data as sbd
 import seisbench.generate as sbg
+import seisbench.models as sbm
 import numpy as np
 import torch
 import torch.nn as nn
