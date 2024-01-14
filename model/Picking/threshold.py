@@ -26,14 +26,13 @@ model_name = args.model_name
 print(model_name)
 ptime = 500
 window = 3000
-parl = 'y'  # y,n
 threshold = [0.1,0.2,0.3,0.4,0.5,0.6]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # =========================================================================================================
-cwb_path = "/mnt/disk2/johnn9/dataset/cwbsn/"
-tsm_path = "/mnt/disk2/johnn9/dataset/tsmip/"
-noi_path = "/mnt/disk2/johnn9/dataset/cwbsn_noise/"
-mod_path = "/mnt/disk1/johnn9/checkpoint/"
+cwb_path = "/mnt/nas5/johnn9/dataset/cwbsn/"
+tsm_path = "/mnt/nas5/johnn9/dataset/tsmip/"
+noi_path = "/mnt/nas5/johnn9/dataset/cwbsn_noise/"
+mod_path = "/mnt/nas3/johnn9/checkpoint/"
 model_path = mod_path + model_name
 threshold_path = model_path + '/' + test_name + '.txt'
 loadmodel = model_path + '/' + 'best_checkpoint.pt' 
@@ -126,7 +125,7 @@ elif args.train_model == "phasenet":
 
 elif args.train_model == "eqt":
     model = sbm.EQTransformer(in_samples=window, phases='PS')
-if parl == 'y':
+if args.parl == 'y':
     num_gpus = torch.cuda.device_count()
     if num_gpus > 0:
         gpu_indices = list(range(num_gpus))
@@ -164,7 +163,8 @@ for thres in threshold:
         y = batch['y'].to(device)
         y = label_gen(y.to(device))
         x = model(x.to(device))
-
+        if args.train_model == 'eqt':
+            x = x[1]
         if args.model_type == 'onlyp':
             for num in range(len(x)):
                 xp = x[num,0]

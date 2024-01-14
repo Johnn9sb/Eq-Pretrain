@@ -33,10 +33,10 @@ parl = 'y'  # y,n
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(model_name)
 # =========================================================================================================
-cwb_path = "/mnt/disk2/johnn9/dataset/cwbsn/"
-tsm_path = "/mnt/disk2/johnn9/dataset/tsmip/"
-noi_path = "/mnt/disk2/johnn9/dataset/cwbsn_noise/"
-mod_path = "/mnt/disk1/johnn9/checkpoint/"
+cwb_path = "/mnt/nas5/johnn9/dataset/cwbsn/"
+tsm_path = "/mnt/nas5/johnn9/dataset/tsmip/"
+noi_path = "/mnt/nas5/johnn9/dataset/cwbsn_noise/"
+mod_path = "/mnt/nas3/johnn9/checkpoint/"
 model_path = mod_path + model_name
 checkpoint = model_path+'/best_checkpoint.pt'
 if not os.path.isdir(model_path):
@@ -72,22 +72,21 @@ print("Data loading complete!!!")
 # =========================================================================================================
 # Funtion
 start_time = time.time()
-def loss_fn(x,y,args):
+def loss_fn(x,y,args,eps=1e-8):
     
+    weight = torch.ones_like(y)
+    weight[y > 0] = args.weight
     if args.train_model == 'wav2vec2':
-        weight = torch.ones_like(y)
-        weight[y > 0] = args.weight
-        x = x.to(torch.float16)
-        y = y.to(torch.float16)
+        x = x.to(torch.float32)
+        y = y.to(torch.float32)
         loss_cal = nn.BCELoss(weight=weight)
-        loss = loss_cal(x, y)
+        loss = loss_cal((x+eps), y)
     elif args.train_model == 'eqt':
         x = torch.unsqueeze(x[0], 1)
-        print(x.shape)
-        print(y.shape)
-        x = x.to(torch.float16)
-        y = y.to(torch.float16)
-        loss = F.binary_cross_entropy_with_logits(x, y)
+        x = x.to(torch.float32)
+        y = y.to(torch.float32)
+        loss_cal = nn.BCELoss(weight=weight)
+        loss = loss_cal((x+eps), y)
     elif args.train_model == 'phasenet':
         loss = y * torch.log(x + 1e-5)
         loss = loss.mean(-1).sum(-1)
@@ -108,6 +107,7 @@ def train_loop(dataloader,win_len,args):
     num_batches = len(dataloader)
     train_loss = 0
     train_loss = float(train_loss)
+    clip_value = 1.0
     progre = tqdm(enumerate(dataloader),total=len(dataloader),ncols=80)
     for batch_id, batch in progre:
         # General 
@@ -122,6 +122,7 @@ def train_loop(dataloader,win_len,args):
         # Backpropagation
         optimizer.zero_grad()
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
         optimizer.step()
         train_loss = train_loss + loss.item()
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -145,7 +146,7 @@ def test_loop(dataloader,win_len,args):
             x = model(x.to(device))
         test_loss1 = loss_fn(x,y,args).item()
         test_loss = test_loss + test_loss1
-        progre.set_postfix({'Test': f'{test_loss:.4f}'})
+        progre.set_postfix({'Test': f'{test_loss:.5f}'})
         
 # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if args.test_mode == 'true':
@@ -189,27 +190,20 @@ augmentations = [
 ]
 train_gene = sbg.GenericGenerator(train)
 train_gene.add_augmentations(augmentations)
-train_loader = DataLoader(train_gene,batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers,pin_memory=True)
+train_loader = DataLoader(train_gene,batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
 dev_gene = sbg.GenericGenerator(dev)
 dev_gene.add_augmentations(augmentations)
-dev_loader = DataLoader(dev_gene,batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers,pin_memory=True)
+dev_loader = DataLoader(dev_gene,batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
 print("Dataloader Complete!!!")
 # =========================================================================================================
 # Wav2vec model load
 if args.train_model == "wav2vec2":
-    if args.checkpoint_path != '':
-        checkpoint_path = args.checkpoint_path
-        print(checkpoint_path)
-        model = Wav2vec_Pick(
-            device=device,
-            decoder_type=args.decoder_type,
-            checkpoint_path=checkpoint_path,
-        )
-    else:
-        model = Wav2vec_Pick(
-            device=device,
-            decoder_type=args.decoder_type,
-        )
+    print(args.checkpoint_path)
+    model = Wav2vec_Pick(
+        device=device,
+        decoder_type=args.decoder_type,
+        checkpoint_path=args.checkpoint_path,
+    )
 elif args.train_model == "phasenet":
     model = sbm.PhaseNet(phases="PSN", norm="peak")
 elif args.train_model == "eqt":
@@ -227,6 +221,7 @@ model.cuda();
 model.train()
 optimizer = torch.optim.Adam(model.parameters(), lr=decoder_lr)
 scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
+
 
 print("Model Complete!!!")
 total_params = sum(p.numel() for p in model.parameters())
