@@ -15,7 +15,7 @@ from torch.optim import lr_scheduler
 from tqdm import tqdm
 import time
 from model import Wav2vec_Pick
-from utils import parse_arguments
+from utils import parse_arguments,get_dataset
 import logging
 from datetime import datetime
 import torch.nn.functional as F
@@ -33,9 +33,6 @@ parl = 'y'  # y,n
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(model_name)
 # =========================================================================================================
-cwb_path = "/mnt/nas5/johnn9/dataset/cwbsn/"
-tsm_path = "/mnt/nas5/johnn9/dataset/tsmip/"
-noi_path = "/mnt/nas5/johnn9/dataset/cwbsn_noise/"
 mod_path = "/mnt/nas3/johnn9/checkpoint/"
 model_path = mod_path + model_name
 checkpoint = model_path+'/best_checkpoint.pt'
@@ -44,25 +41,9 @@ if not os.path.isdir(model_path):
 score_path = model_path + '/' + model_name + '.txt'
 print("Init Complete!!!")
 # =========================================================================================================
-# DataLoad
+# GetDataset
 start_time = time.time()
-cwb = sbd.WaveformDataset(cwb_path,sampling_rate=100)
-c_mask = cwb.metadata["trace_completeness"] == 4
-cwb.filter(c_mask)
-c_train, c_dev, _ = cwb.train_dev_test()
-tsm = sbd.WaveformDataset(tsm_path,sampling_rate=100)
-t_mask = tsm.metadata["trace_completeness"] == 1
-tsm.filter(t_mask)
-t_train, t_dev, _ = tsm.train_dev_test()
-if args.noise_need == 'true':
-    noise = sbd.WaveformDataset(noi_path,sampling_rate=100)
-    n_train, n_dev, _ = noise.train_dev_test()
-    train = c_train + t_train + n_train
-    dev = c_dev + t_dev + n_dev
-elif args.noise_need == 'false':
-    train = c_train + t_train
-    dev = c_dev + t_dev
-train_len = len(train)
+train,dev,test = get_dataset(args)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print("=====================================================")
@@ -74,24 +55,39 @@ print("Data loading complete!!!")
 start_time = time.time()
 def loss_fn(x,y,args,eps=1e-8):
     
-    weight = torch.ones_like(y)
-    weight[y > 0] = args.weight
-    if args.train_model == 'wav2vec2':
-        x = x.to(torch.float32)
-        y = y.to(torch.float32)
-        loss_cal = nn.BCELoss(weight=weight)
-        loss = loss_cal((x+eps), y)
-    elif args.train_model == 'eqt':
-        x = torch.unsqueeze(x[0], 1)
-        x = x.to(torch.float32)
-        y = y.to(torch.float32)
-        loss_cal = nn.BCELoss(weight=weight)
-        loss = loss_cal((x+eps), y)
-    elif args.train_model == 'phasenet':
-        loss = y * torch.log(x + 1e-5)
-        loss = loss.mean(-1).sum(-1)
-        loss = loss.mean()
-        loss = -loss
+    if args.task == 'pick':
+        if args.train_model == 'wav2vec2':
+            x = x[:,0:2,:]
+            y = y[:,0:2,:]
+            weight = torch.ones_like(y)
+            weight[y > 0] = args.weight
+            x = x.to(torch.float32)
+            y = y.to(torch.float32)
+            loss_cal = nn.BCELoss(weight=weight)
+            loss = loss_cal((x+eps), y)
+        elif args.train_model == 'eqt':
+            x_tensor = torch.empty(2,len(y),3000)
+            for index, item in enumerate(x):
+                x_tensor[index] = item
+                if index == 1:
+                    break
+            x = x_tensor.permute(1,0,2)
+            y = y[:,0:2,:]
+            weight = torch.ones_like(y)
+            weight[y > 0] = args.weight
+            x = x.to(torch.float32)
+            y = y.to(torch.float32)
+            x = x.to(device)
+            y = y.to(device)
+            loss_cal = nn.BCELoss(weight=weight)
+            loss = loss_cal((x+eps), y)
+        elif args.train_model == 'phasenet':
+            loss = y * torch.log(x + 1e-5)
+            loss = loss.mean(-1).sum(-1)
+            loss = loss.mean()
+            loss = -loss
+    elif args.task == 'detect':
+        sys.exit()
     return loss
 
 def label_gen(label,args):
@@ -113,10 +109,11 @@ def train_loop(dataloader,win_len,args):
         # General 
         x = batch['X'].to(device)
         y = batch['y'].to(device)
-        y = label_gen(y.to(device),args)
+        # y = label_gen(y.to(device),args)
         batch_size = len(x)
         # Forward
         x = model(x.to(device))
+
         loss = loss_fn(x,y,args)
         progre.set_postfix({'Loss': f'{loss.item():.5f}'})
         # Backpropagation
@@ -141,7 +138,7 @@ def test_loop(dataloader,win_len,args):
     for batch in progre:
         x = batch['X'].to(device)
         y = batch['y'].to(device)
-        y = label_gen(y.to(device),args)
+        # y = label_gen(y.to(device),args)
         with torch.no_grad():
             x = model(x.to(device))
         test_loss1 = loss_fn(x,y,args).item()
@@ -179,15 +176,47 @@ phase_dict = {
     "trace_SmS_arrival_sample": "S",
     "trace_Sn_arrival_sample": "S",
 }
-augmentations = [
-    sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
-    sbg.RandomWindow(windowlen=window, strategy="pad"),
-    # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
-    sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
-    sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
-    sbg.ChangeDtype(np.float32),
-    sbg.ProbabilisticLabeller(label_columns=phase_dict, sigma=30, dim=0)
-]
+p_dict = {
+    "trace_p_arrival_sample": "P",
+    "trace_pP_arrival_sample": "P",
+    "trace_P_arrival_sample": "P",
+    "trace_P1_arrival_sample": "P",
+    "trace_Pg_arrival_sample": "P",
+    "trace_Pn_arrival_sample": "P",
+    "trace_PmP_arrival_sample": "P",
+    "trace_pwP_arrival_sample": "P",
+    "trace_pwPm_arrival_sample": "P",
+}
+s_dict = {
+    "trace_s_arrival_sample": "S",
+    "trace_S_arrival_sample": "S",
+    "trace_S1_arrival_sample": "S",
+    "trace_Sg_arrival_sample": "S",
+    "trace_SmS_arrival_sample": "S",
+    "trace_Sn_arrival_sample": "S",   
+}
+if args.task == 'pick':
+    augmentations = [
+        sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
+        sbg.RandomWindow(windowlen=window, strategy="pad",low=250,high=5750),
+        # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
+        sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
+        sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
+        sbg.ChangeDtype(np.float32),
+        sbg.ProbabilisticLabeller(label_columns=phase_dict, sigma=30, dim=0),
+        # sbg.DetectionLabeller(p_phases=p_dict, s_phases=s_dict),
+    ]
+elif args.task == 'detect':
+    augmentations = [
+        sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
+        sbg.RandomWindow(windowlen=window, strategy="pad",low=250,high=5750),
+        # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
+        sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
+        sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
+        sbg.ChangeDtype(np.float32),
+        # sbg.ProbabilisticLabeller(label_columns=phase_dict, sigma=30, dim=0),
+        sbg.DetectionLabeller(p_phases=p_dict, s_phases=s_dict),
+    ]       
 train_gene = sbg.GenericGenerator(train)
 train_gene.add_augmentations(augmentations)
 train_loader = DataLoader(train_gene,batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)

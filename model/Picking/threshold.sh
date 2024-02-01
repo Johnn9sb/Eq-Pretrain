@@ -11,7 +11,7 @@ python threshold.py \
 --train_model 'eqt' \
 --batch_size 32 \
 --num_workers 4 \
---parl 'n' \
+--parl 'y' \
 # --decoder_type 'linear' \
 
 # CUDA_VISIBLE_DEVICES=0 \

@@ -1,23 +1,31 @@
-# CUDA_VISIBLE_DEVICES=2,3 \
+# CUDA_VISIBLE_DEVICES=0,1 \
 # exec -a Johnn9_Finetune \
 # python train.py \
-# --model_name '1_4_768_15000_linear' \
+# --model_name '2_1_768_scratch_linear' \
 # --batch_size 64 \
 # --num_workers 4 \
-# --epochs 10 \
+# --epochs 200 \
 # --decoder_type 'linear' \
-# --checkpoint_path '/mnt/nas3/johnn9/Eq-Pretrain/pretrain/mask7_d768/checkpoints/checkpoint_14_15000.pt' \
-# --test_mode 'true'
+# --checkpoint_path 'None' \
+
+# --test_mode 'true' \
 # --weight 3.0 \
 
 CUDA_VISIBLE_DEVICES=2,3 \
 exec -a Johnn9_Finetune \
 python train.py \
---model_name 'phasenet' \
+--model_name 'eqt' \
 --batch_size 64 \
 --num_workers 4 \
 --epochs 200 \
---train_model 'phasenet' \
-# --decoder_type 'linear' \
-# --test_mode 'true'
-# --weight 3.0 \
+--train_model 'eqt' \
+# --test_mode 'true' \
+
+# CUDA_VISIBLE_DEVICES=2,3 \
+# exec -a Johnn9_Finetune \
+# python train.py \
+# --model_name 'phasenet' \
+# --batch_size 64 \
+# --num_workers 4 \
+# --epochs 200 \
+# --train_model 'phasenet' \
