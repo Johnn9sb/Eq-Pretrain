@@ -145,7 +145,7 @@ for thres in threshold:
         # y = label_gen(y.to(device))
         x = model(x.to(device))
         if args.task == 'pick':
-            if train_model == 'eqt':
+            if args.train_model == 'eqt':
                 x_tensor = torch.empty(2,len(y),window)
                 for index, item in enumerate(x):
                     x_tensor[index] = item
@@ -187,14 +187,17 @@ for thres in threshold:
                 p_std_now = torch.std(xp - yp)
                 p_std_batch = p_std_batch + p_std_now.item()
                 p_mae_now = torch.mean(torch.abs(xp - yp))
-                p_mae_batch = p_mae_batch + p_mae_now
+                p_mae_batch = p_mae_batch + p_mae_now.item()
                 s_mean_now = torch.mean(xs - ys)
                 s_mean_batch = s_mean_batch + s_mean_now.item()
                 s_std_now = torch.std(xs - ys)
                 s_std_batch = s_std_batch + s_std_now.item()
                 s_mae_now = torch.mean(torch.abs(xs - ys))
-                s_mae_batch = s_mae_batch + s_mae_now
-            
+                s_mae_batch = s_mae_batch + s_mae_now.item()
+# =======================================================================
+                if args.test_mode == 'true':
+                    break
+# =======================================================================           
             p_mean = p_mean + (p_mean_batch / args.batch_size)
             p_std = p_std + (p_std_batch / args.batch_size)
             p_mae = p_mae + (p_mae_batch / args.batch_size)
@@ -203,6 +206,10 @@ for thres in threshold:
             s_mae = s_mae + (s_mae_batch / args.batch_size)
 
             progre.set_postfix({"pTP": p_tp, "pFP": p_fp, "pTN": p_tn, "pFN": p_fn})
+# =======================================================================
+            if args.test_mode == 'true':
+                break
+# =======================================================================           
 
     p_mean = p_mean / len(dev_loader)
     p_std = p_std / len(dev_loader)

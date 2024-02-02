@@ -15,7 +15,7 @@ from tqdm import tqdm
 import time
 import matplotlib.pyplot as plt
 from model import Wav2vec_Pick
-from utils import parse_arguments
+from utils import parse_arguments,get_dataset
 import logging
 logging.getLogger().setLevel(logging.WARNING)
 # =========================================================================================================
@@ -29,9 +29,6 @@ window = 3000
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 parl = 'y'  # y,n
 # =========================================================================================================
-cwb_path = "/mnt/nas5/johnn9/dataset/cwbsn/"
-tsm_path = "/mnt/nas5/johnn9/dataset/tsmip/"
-noi_path = "/mnt/nas5/johnn9/dataset/cwbsn_noise/"
 mod_path = "/mnt/nas3/johnn9/checkpoint/"
 test_name = 'threshold=' + str(threshold) + '_eval'
 model_path = mod_path + model_name
@@ -45,36 +42,16 @@ fp_path = image_path + '/fp'
 fpn_path = image_path + '/fpn'
 tn_path = image_path + '/tn'
 fn_path = image_path + '/fn'
+stp_path = image_path + '/stp'
+sfp_path = image_path + '/sfp'
+sfpn_path = image_path + '/sfpn'
+stn_path = image_path + '/stn'
+sfn_path = image_path + '/sfn'
 print("Init Complete!!!")
 # =========================================================================================================
 # DataLoad
 start_time = time.time()
-# CWBSN load
-cwb = sbd.WaveformDataset(cwb_path,sampling_rate=100)
-c_mask = cwb.metadata["trace_completeness"] > 3
-cwb.filter(c_mask)
-_, c_dev, c_test = cwb.train_dev_test()
-# TSMIP load
-tsm = sbd.WaveformDataset(tsm_path,sampling_rate=100)
-t_mask = tsm.metadata["trace_completeness"] == 1
-tsm.filter(t_mask)
-_, t_dev, t_test = tsm.train_dev_test()
-# NOISE load
-# Combine
-if args.test_set == 'test':
-    if args.noise_need == 'true':        
-        noise = sbd.WaveformDataset(noi_path,sampling_rate=100)
-        _, n_dev, n_test = noise.train_dev_test()
-        test = c_test + t_test + n_test
-    elif args.noise_need == 'false':
-        test = c_test + t_test
-elif args.test_set == 'dev':
-    if args.noise_need == 'true':        
-        noise = sbd.WaveformDataset(noi_path,sampling_rate=100)
-        _, n_dev, n_test = noise.train_dev_test()
-        test = c_dev + t_dev + n_dev
-    elif args.noise_need == 'false':
-        test = c_dev + t_dev
+_,dev,test = get_dataset(args)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print("=====================================================")
@@ -150,12 +127,13 @@ phase_dict = {
 }
 augmentations = [
     sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
-    sbg.RandomWindow(windowlen=window, strategy="pad"),
+    sbg.RandomWindow(windowlen=window, strategy="pad",low=250,high=5750),
     # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
     sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
     sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
     sbg.ChangeDtype(np.float32),
-    sbg.ProbabilisticLabeller(label_columns=phase_dict, sigma=30, dim=0)
+    sbg.ProbabilisticLabeller(label_columns=phase_dict, sigma=30, dim=0),
+    # sbg.DetectionLabeller(p_phases=p_dict, s_phases=s_dict),
 ]
 test_gene = sbg.GenericGenerator(test)
 test_gene.add_augmentations(augmentations)
@@ -201,20 +179,34 @@ start_time = time.time()
 f = open(threshold_path,"w")
 print("Testing: " + str(threshold) + " start!!")
 p_tp,p_tn,p_fp,p_fn,p_fpn = 0,0,0,0,0
-s_tp,s_tn,s_fp,s_fn = 0,0,0,0
+s_tp,s_tn,s_fp,s_fn,s_fpn = 0,0,0,0
+p_mean,p_std,p_mae = 0,0,0
+s_mean,s_std,s_mae = 0,0,0
 image = 0
 # Test loop
 progre = tqdm(test_loader,total = len(test_loader), ncols=80)
 for batch in progre:
+    p_mean_batch,p_std_batch,p_mae_batch = 0,0,0
+    s_mean_batch,s_std_batch,s_mae_batch = 0,0,0
     x = batch['X'].to(device)
     y = batch['y'].to(device)
-    y = label_gen(y)
+    # y = label_gen(y)
     x = model(x.to(device))
 
-    if args.model_type == 'onlyp':
+    if args.task == 'pick':
+        if args.train_model == 'eqt':
+            x_tensor = torch.empty(2,len(y),window)
+            for index, item in enumerate(x):
+                x_tensor[index] = item
+                if index == 1:
+                    break
+            x = x_tensor.permute(1,0,2)
+            x = x.to(device)
         for num in range(len(x)):
             xp = x[num,0]
+            xs = x[num,1]
             yp = y[num,0]
+            ys = y[num,1]
                 
             if torch.max(yp) >= threshold and torch.max(xp) >= threshold:
                 if abs(torch.argmax(yp).item() - torch.argmax(xp).item()) <= 50:
@@ -237,80 +229,62 @@ for batch in progre:
                 p_tn = p_tn + 1
                 if p_tn < 10:
                     image_save(batch,x,y,tn_path,p_tn,num)
-        progre.set_postfix({"TP": p_tp, "FP": p_fp+p_fpn, "TN": p_tn, "FN": p_fn})
-    
-    elif args.model_type == 'ps':
-        for num in range(len(x)):
-            xp = x[num,0]
-            xs = x[num,1]
-            yp = y[num,0]
-            ys = y[num,1]
-                
-            if torch.max(yp) >= threshold and torch.max(xp) >= threshold:
-                if abs(torch.argmax(yp).item() - torch.argmax(xp).item()) <= 50:
-                    p_tp = p_tp + 1
-                else:
-                    p_fp = p_fp + 1
-            if torch.max(yp) < threshold and torch.max(xp) >= threshold:
-                p_fp = p_fp + 1
-            if torch.max(yp) >= threshold and torch.max(xp) < threshold:
-                p_fn = p_fn + 1
-            if torch.max(yp) < threshold and torch.max(xp) < threshold:
-                p_tn = p_tn + 1
 
-            if torch.max(ys) >= threshold and torch.max(xs) >= threshold:
+            if torch.max(ys) >= thres and torch.max(xs) >= thres:
                 if abs(torch.argmax(ys).item() - torch.argmax(xs).item()) <= 50:
                     s_tp = s_tp + 1
+                    if s_tp < 10:
+                        image_save(batch,x,y,stp_path,s_tp,num)
                 else:
                     s_fp = s_fp + 1
-            if torch.max(ys) < threshold and torch.max(xs) >= threshold:
-                s_fp = s_fp + 1
-            if torch.max(ys) >= threshold and torch.max(xs) < threshold:
+                    if s_fp < 10:
+                        image_save(batch,x,y,sfp_path,s_fp,num)
+            if torch.max(ys) < thres and torch.max(xs) >= thres:
+                s_fpn = s_fpn + 1
+                if s_fpn < 10:
+                    image_save(batch,x,y,sfpn_path,s_fpn,num)
+            if torch.max(ys) >= thres and torch.max(xs) < thres:
                 s_fn = s_fn + 1
-            if torch.max(ys) < threshold and torch.max(xs) < threshold:
+                if s_fn < 10:
+                    image_save(batch,x,y,sfn_path,s_fn,num)
+            if torch.max(ys) < thres and torch.max(xs) < thres:
                 s_tn = s_tn + 1
+                if s_tn < 10:
+                    image_save(batch,x,y,stn_path,s_tn,num)
 
-        if image < 50:
-            
-            wave1 = batch['X'][0,0]
-            wave2 = batch['X'][0,1]
-            wave3 = batch['X'][0,2]
-            # 创建示例波形数据、one-hot label 和 softmax 概率值
-            p_predict = x[0,0]  # 长度为 9 的 one-hot label
-            p_label = y[0,0]  # 长度为 9 的 softmax 概率值，这里使用随机数据代替
-            s_predict = x[0,1]
-            s_label = y[0,1]
-            
-            wave1 = wave1.detach().numpy()
-            wave2 = wave2.detach().numpy()
-            wave3 = wave3.detach().numpy()
-            p_predict = p_predict.detach().cpu().numpy()
-            p_label = p_label.detach().cpu().numpy()
-            s_predict = s_predict.detach().cpu().numpy()
-            s_label = s_label.detach().cpu().numpy()
-
-            fig = plt.figure(figsize=(15,10))
-            axs = fig.subplots(7,1,sharex=True,gridspec_kw={"hspace":0,"height_ratios":[1,1,1,1,1,1,1]})
-            axs[0].plot(wave1)
-            axs[1].plot(wave2)
-            axs[2].plot(wave3)
-            axs[3].plot(p_predict)
-            axs[4].plot(p_label)
-            axs[5].plot(s_predict)
-            axs[6].plot(s_label)
-            fignum1 = str(image)
-            savepath = image_path + '/wav_' + fignum1 + '.png'
-            plt.savefig(savepath)
-            plt.close('all') 
-            image = image + 1
+            p_mean_now = torch.mean(xp - yp)
+            p_mean_batch = p_mean_batch + p_mean_now.item()
+            p_std_now = torch.std(xp - yp)
+            p_std_batch = p_std_batch + p_std_now.item()
+            p_mae_now = torch.mean(torch.abs(xp - yp))
+            p_mae_batch = p_mae_batch + p_mae_now.item()
+            s_mean_now = torch.mean(xs - ys)
+            s_mean_batch = s_mean_batch + s_mean_now.item()
+            s_std_now = torch.std(xs - ys)
+            s_std_batch = s_std_batch + s_std_now.item()
+            s_mae_now = torch.mean(torch.abs(xs - ys))
+            s_mae_batch = s_mae_batch + s_mae_now.item()   
+        p_mean = p_mean + (p_mean_batch / args.batch_size)
+        p_std = p_std + (p_std_batch / args.batch_size)
+        p_mae = p_mae + (p_mae_batch / args.batch_size)
+        s_mean = s_mean + (s_mean_batch / args.batch_size)
+        s_std = s_std + (s_std_batch / args.batch_size)
+        s_mae = s_mae + (s_mae_batch / args.batch_size)
+        progre.set_postfix({"TP": p_tp, "FP": p_fp+p_fpn, "TN": p_tn, "FN": p_fn})
 
     if args.test_mode == 'true':
         break
-
+p_mean = p_mean / len(dev_loader)
+p_std = p_std / len(dev_loader)
+p_mae = p_mae / len(dev_loader)
+s_mean = s_mean / len(dev_loader)
+s_std = s_std / len(dev_loader)
+s_mae = s_mae / len(dev_loader)
 
 # 計算分數 
-p_fp = p_fp+p_fpn
-if args.model_type == 'onlyp':
+p_fp = p_fp + p_fpn
+s_fp = s_fp + s_fpn
+if args.task == 'pick':
 
     if p_tp == 0:
         p_recall = 0
@@ -320,72 +294,64 @@ if args.model_type == 'onlyp':
         p_recall = p_tp / (p_tp + p_fn)
         p_precision = p_tp / (p_tp + p_fp)
         p_f1 = 2*((p_precision * p_recall)/(p_precision+p_recall))
+    if s_tp == 0:
+        s_recall = 0
+        s_precision = 0
+        s_f1 = 0
+    else:
+        s_recall = s_tp / (s_tp + s_fn)
+        s_precision = s_tp / (s_tp + s_fp)
+        s_f1 = 2*((s_precision * s_recall)/(s_precision+s_recall))
     # Write Log
     f.write('==================================================' + '\n')
-    f.write('Threshold = ' + str(threshold) + '\n')
+    f.write('Threshold = ' + str(thres) + '\n')
     f.write('P-phase precision = ' + str(p_precision) + '\n')
     f.write('P-phase recall = ' + str(p_recall) + '\n')
-    f.write('P-phase f1score = ' + str(p_f1) + '\n')
+    f.write('P-phase f1score = ' + str(p_ f1) + '\n')
+    f.write('P-phase mean = ' + str(p_mean) + '\n')
+    f.write('P-phase std = ' + str(p_std) + '\n')
+    f.write('P-phase mae = ' + str(p_mae) + '\n')
     f.write('P-phase tp = ' + str(p_tp) + '\n')
     f.write('P-phase fp = ' + str(p_fp) + '\n')
     f.write('P-phase tn = ' + str(p_tn) + '\n')
     f.write('P-phase fn = ' + str(p_fn) + '\n')
-    # Print Log
-    print('==================================================')
-    print('Threshold = ' + str(threshold))
-    print('P-phase precision = ' + str(p_precision))
-    print('P-phase recall = ' + str(p_recall))
-    print('P-phase f1score = ' + str(p_f1))
-    print('P-phase tp = ' + str(p_tp))
-    print('P-phase fp = ' + str(p_fp))
-    print('P-phase tn = ' + str(p_tn))
-    print('P-phase fn = ' + str(p_fn))
-
-elif args.model_type == 'ps':
-
-    p_recall = p_tp / (p_tp + p_fn)
-    p_precision = p_tp / (p_tp + p_fp)
-    p_f1 = 2*((p_precision * p_recall)/(p_precision+p_recall))
-    s_recall = s_tp / (s_tp + s_fn)
-    s_precision = s_tp / (s_tp + s_fp)
-    s_f1 = 2*((s_precision * s_recall)/(s_precision+s_recall))
-    # Write Log
     f.write('==================================================' + '\n')
-    f.write('Threshold = ' + str(threshold) + '\n')
-    f.write('P-phase precision = ' + str(p_precision) + '\n')
-    f.write('P-phase recall = ' + str(p_recall) + '\n')
-    f.write('P-phase f1score = ' + str(p_f1) + '\n')
-    f.write('P-phase tp = ' + str(p_tp) + '\n')
-    f.write('P-phase fp = ' + str(p_fp) + '\n')
-    f.write('P-phase tn = ' + str(p_tn) + '\n')
-    f.write('P-phase fn = ' + str(p_fn) + '\n')
-    f.write('S-phase============================' + '\n')
     f.write('S-phase precision = ' + str(s_precision) + '\n')
     f.write('S-phase recall = ' + str(s_recall) + '\n')
     f.write('S-phase f1score = ' + str(s_f1) + '\n')
+    f.write('S-phase mean = ' + str(s_mean) + '\n')
+    f.write('S-phase std = ' + str(s_std) + '\n')
+    f.write('S-phase mae = ' + str(s_mae) + '\n')
     f.write('S-phase tp = ' + str(s_tp) + '\n')
     f.write('S-phase fp = ' + str(s_fp) + '\n')
     f.write('S-phase tn = ' + str(s_tn) + '\n')
     f.write('S-phase fn = ' + str(s_fn) + '\n')
-    # Print Log
+    
     print('==================================================')
-    print('Threshold = ' + str(threshold))
+    print('Threshold = ' + str(thres))
     print('P-phase precision = ' + str(p_precision))
     print('P-phase recall = ' + str(p_recall))
     print('P-phase f1score = ' + str(p_f1))
+    print('P-phase mean = ' + str(p_mean))
+    print('P-phase std = ' + str(p_std))
+    print('P-phase mae = ' + str(p_mae))
     print('P-phase tp = ' + str(p_tp))
     print('P-phase fp = ' + str(p_fp))
     print('P-phase tn = ' + str(p_tn))
     print('P-phase fn = ' + str(p_fn))
-    print('S-phase============================')
+    print('==================================================')
+    print('Threshold = ' + str(thres))
     print('S-phase precision = ' + str(s_precision))
     print('S-phase recall = ' + str(s_recall))
     print('S-phase f1score = ' + str(s_f1))
+    print('S-phase mean = ' + str(s_mean))
+    print('S-phase std = ' + str(s_std))
+    print('S-phase mae = ' + str(s_mae))
     print('S-phase tp = ' + str(s_tp))
     print('S-phase fp = ' + str(s_fp))
     print('S-phase tn = ' + str(s_tn))
     print('S-phase fn = ' + str(s_fn))
-    
+
 f.close()
 end_time = time.time()
 elapsed_time = end_time - start_time

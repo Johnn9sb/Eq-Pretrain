@@ -4,14 +4,15 @@
 # --batch_size 400 \
 # --num_workers 8 \
 
-CUDA_VISIBLE_DEVICES=2,3 \
+CUDA_VISIBLE_DEVICES=0,1 \
 exec -a Johnn9_Finetune \
 python threshold.py \
---model_name 'eqt' \
---train_model 'eqt' \
+--model_name 'phasenet' \
+--train_model 'phasenet' \
 --batch_size 32 \
 --num_workers 4 \
 --parl 'y' \
+# --test_mode 'true' \
 # --decoder_type 'linear' \
 
 # CUDA_VISIBLE_DEVICES=0 \

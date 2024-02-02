@@ -1,4 +1,5 @@
 import argparse
+import seisbench.data as sbd
 
 def parse_arguments():
     
@@ -41,7 +42,7 @@ def get_dataset(args):
     t_train, t_dev, t_test = tsm.train_dev_test()
     if args.noise_need == 'true':
         noise = sbd.WaveformDataset(noi_path,sampling_rate=100)
-        n_train, n_dev, _ = noise.train_dev_test()
+        n_train, n_dev, n_test = noise.train_dev_test()
         train = c_train + t_train + n_train
         dev = c_dev + t_dev + n_dev
         test = c_test + t_test + n_test
