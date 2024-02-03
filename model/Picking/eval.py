@@ -33,7 +33,7 @@ mod_path = "/mnt/nas3/johnn9/checkpoint/"
 test_name = 'threshold=' + str(threshold) + '_eval'
 model_path = mod_path + model_name
 threshold_path = model_path + '/' + test_name + '.txt'
-loadmodel = model_path + '/' + 'best_checkpoint.pt' 
+loadmodel = model_path + '/' + 'last_checkpoint.pt' 
 image_path = model_path + '/' + test_name + '_fig'
 if not os.path.isdir(image_path):
     os.mkdir(image_path)
@@ -179,7 +179,7 @@ start_time = time.time()
 f = open(threshold_path,"w")
 print("Testing: " + str(threshold) + " start!!")
 p_tp,p_tn,p_fp,p_fn,p_fpn = 0,0,0,0,0
-s_tp,s_tn,s_fp,s_fn,s_fpn = 0,0,0,0
+s_tp,s_tn,s_fp,s_fn,s_fpn = 0,0,0,0,0
 p_mean,p_std,p_mae = 0,0,0
 s_mean,s_std,s_mae = 0,0,0
 image = 0
@@ -230,7 +230,7 @@ for batch in progre:
                 if p_tn < 10:
                     image_save(batch,x,y,tn_path,p_tn,num)
 
-            if torch.max(ys) >= thres and torch.max(xs) >= thres:
+            if torch.max(ys) >= threshold and torch.max(xs) >= threshold:
                 if abs(torch.argmax(ys).item() - torch.argmax(xs).item()) <= 50:
                     s_tp = s_tp + 1
                     if s_tp < 10:
@@ -239,15 +239,15 @@ for batch in progre:
                     s_fp = s_fp + 1
                     if s_fp < 10:
                         image_save(batch,x,y,sfp_path,s_fp,num)
-            if torch.max(ys) < thres and torch.max(xs) >= thres:
+            if torch.max(ys) < threshold and torch.max(xs) >= threshold:
                 s_fpn = s_fpn + 1
                 if s_fpn < 10:
                     image_save(batch,x,y,sfpn_path,s_fpn,num)
-            if torch.max(ys) >= thres and torch.max(xs) < thres:
+            if torch.max(ys) >= threshold and torch.max(xs) < threshold:
                 s_fn = s_fn + 1
                 if s_fn < 10:
                     image_save(batch,x,y,sfn_path,s_fn,num)
-            if torch.max(ys) < thres and torch.max(xs) < thres:
+            if torch.max(ys) < threshold and torch.max(xs) < threshold:
                 s_tn = s_tn + 1
                 if s_tn < 10:
                     image_save(batch,x,y,stn_path,s_tn,num)
@@ -304,10 +304,10 @@ if args.task == 'pick':
         s_f1 = 2*((s_precision * s_recall)/(s_precision+s_recall))
     # Write Log
     f.write('==================================================' + '\n')
-    f.write('Threshold = ' + str(thres) + '\n')
+    f.write('Threshold = ' + str(threshold) + '\n')
     f.write('P-phase precision = ' + str(p_precision) + '\n')
     f.write('P-phase recall = ' + str(p_recall) + '\n')
-    f.write('P-phase f1score = ' + str(p_ f1) + '\n')
+    f.write('P-phase f1score = ' + str(p_f1) + '\n')
     f.write('P-phase mean = ' + str(p_mean) + '\n')
     f.write('P-phase std = ' + str(p_std) + '\n')
     f.write('P-phase mae = ' + str(p_mae) + '\n')
@@ -328,7 +328,7 @@ if args.task == 'pick':
     f.write('S-phase fn = ' + str(s_fn) + '\n')
     
     print('==================================================')
-    print('Threshold = ' + str(thres))
+    print('Threshold = ' + str(threshold))
     print('P-phase precision = ' + str(p_precision))
     print('P-phase recall = ' + str(p_recall))
     print('P-phase f1score = ' + str(p_f1))
@@ -340,7 +340,6 @@ if args.task == 'pick':
     print('P-phase tn = ' + str(p_tn))
     print('P-phase fn = ' + str(p_fn))
     print('==================================================')
-    print('Threshold = ' + str(thres))
     print('S-phase precision = ' + str(s_precision))
     print('S-phase recall = ' + str(s_recall))
     print('S-phase f1score = ' + str(s_f1))

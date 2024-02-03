@@ -7,8 +7,8 @@
 CUDA_VISIBLE_DEVICES=0,1 \
 exec -a Johnn9_Finetune \
 python threshold.py \
---model_name 'phasenet' \
---train_model 'phasenet' \
+--model_name '2_1_768_scratch_linear' \
+--train_model 'wav2vec2' \
 --batch_size 32 \
 --num_workers 4 \
 --parl 'y' \

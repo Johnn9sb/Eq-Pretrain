@@ -32,7 +32,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 mod_path = "/mnt/nas3/johnn9/checkpoint/"
 model_path = mod_path + model_name
 threshold_path = model_path + '/' + test_name + '.txt'
-loadmodel = model_path + '/' + 'best_checkpoint.pt' 
+loadmodel = model_path + '/' + 'last_checkpoint.pt' 
 print("Init Complete!!!")
 # =========================================================================================================
 # DataLoad
