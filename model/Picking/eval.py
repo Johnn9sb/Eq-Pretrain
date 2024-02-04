@@ -274,12 +274,12 @@ for batch in progre:
 
     if args.test_mode == 'true':
         break
-p_mean = p_mean / len(dev_loader)
-p_std = p_std / len(dev_loader)
-p_mae = p_mae / len(dev_loader)
-s_mean = s_mean / len(dev_loader)
-s_std = s_std / len(dev_loader)
-s_mae = s_mae / len(dev_loader)
+p_mean = p_mean / len(test_loader)
+p_std = p_std / len(test_loader)
+p_mae = p_mae / len(test_loader)
+s_mean = s_mean / len(test_loader)
+s_std = s_std / len(test_loader)
+s_mae = s_mae / len(test_loader)
 
 # 計算分數 
 p_fp = p_fp + p_fpn

@@ -1,11 +1,11 @@
 CUDA_VISIBLE_DEVICES=0,1 \
 exec -a Johnn9_Finetune \
 python eval.py \
---model_name 'eqt' \
---train_model 'eqt' \
---batch_size 64 \
+--model_name '2_1_768_scratch_linear' \
+--train_model 'wav2vec2' \
+--batch_size 32 \
 --num_workers 4 \
---threshold 0.5 \
+--threshold 0.1 \
 # wait
 
 # CUDA_VISIBLE_DEVICES=2,3 \
