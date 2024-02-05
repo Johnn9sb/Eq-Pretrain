@@ -15,7 +15,7 @@ def parse_arguments():
     parser.add_argument('--noise_need',         default='true',                 help='Input n to disable noise data')
     parser.add_argument('--decoder_type',       default='linear',               help='linear,cnn,transformer')
     parser.add_argument('--weight',             default='1.0',      type=float, help='Training P weight')
-    parser.add_argument('--early_stop',         default='7',       type=int,   help='Training early stop')
+    parser.add_argument('--early_stop',         default='7',        type=int,   help='Training early stop')
     parser.add_argument('--loss_type',          default='BCELoss',              help='Training Loss = BCELoss, Phasenet')
     parser.add_argument('--model_type',         default='onlyp',                help='onlyp, ps')
     parser.add_argument('--test_set',           default='test',                 help='test or dev')
@@ -23,6 +23,8 @@ def parse_arguments():
     parser.add_argument('--train_model',        default='wav2vec2',             help='wav2vec2, phasenet, eqt')
     parser.add_argument('--parl',               default='y',                    help='y or n, parller training')
     parser.add_argument('--task',               default='pick',                 help='pick or detect')
+    parser.add_argument('--freeze',             default='y',                    help='y or n')
+    parser.add_argument('--lr',                 default='0.0005',   type=float, help='Learning rate')
 
     args = parser.parse_args()
     return args

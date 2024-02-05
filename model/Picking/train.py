@@ -27,7 +27,6 @@ args = parse_arguments()
 # ptime = 500
 model_name = args.model_name
 method = '12d128'  # 1st, 2nd, 3rd, cnn3, 12d64, 12d128, 6d128
-decoder_lr = 0.0005
 window = 3000
 parl = 'y'  # y,n
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -232,6 +231,7 @@ if args.train_model == "wav2vec2":
         device=device,
         decoder_type=args.decoder_type,
         checkpoint_path=args.checkpoint_path,
+        args=args,
     )
 elif args.train_model == "phasenet":
     model = sbm.PhaseNet(phases="PSN", norm="peak")
@@ -248,7 +248,8 @@ if args.resume == 'true':
 model.to(device)
 model.cuda(); 
 model.train()
-optimizer = torch.optim.Adam(model.parameters(), lr=decoder_lr)
+print(model)
+optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
 scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
 
 

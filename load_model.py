@@ -1,7 +1,7 @@
 import torch
 
 # Load model with this command!!!
-from model.wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+from model.ds_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
 w2v = Wav2Vec2Model(Wav2Vec2Config)
 
 # checkpoint = torch.load('./pretrain/pretrainmask5/pretrainmask5.pt')
@@ -9,3 +9,6 @@ w2v = Wav2Vec2Model(Wav2Vec2Config)
 
 print(w2v)
 print('!!!!!!!!!!!!!!!!!!!!!!')
+random_tensor = torch.rand(1, 3, 3000)
+a = w2v(random_tensor)
+print(a)
