@@ -62,7 +62,7 @@ def loss_fn(x,y,args,eps=1e-8):
             weight[y > 0] = args.weight
             x = x.to(torch.float32)
             y = y.to(torch.float32)
-            loss_cal = nn.BCELoss(weight=weight)
+            loss_cal = nn.BCELoss(weight = weight)
             loss = loss_cal((x+eps), y)
         elif args.train_model == 'eqt':
             x_tensor = torch.empty(2,len(y),3000)
@@ -86,7 +86,31 @@ def loss_fn(x,y,args,eps=1e-8):
             loss = loss.mean()
             loss = -loss
     elif args.task == 'detect':
-        sys.exit()
+        if args.train_model == 'wav2vec2':
+            x = x[:,0,:]
+            y = y[:,0,:]
+            weight = torch.ones_like(y)
+            weight[y > 0] = args.weight
+            x = x.to(torch.float32)
+            y = y.to(torch.float32)
+            loss_cal == nn.BCELoss(weight = weight)
+            loss = loss_cal((x+eps), y)
+        elif args.trrain_model == 'eqt':
+            x_tensor = torch.empty(1,len(y),3000)
+            for index, item in enumerate(x):
+                x_tensor[index] = item
+                if index == 0:
+                    break
+            x = x_tensor.permute(1,0,2)
+            y = y[:,0,:]
+            weight = torch.ones_like(y)
+            weight[y > 0] = args.weight
+            x = x.to(torch.float32)
+            y = y.to(torch.float32)
+            x = x.to(device)
+            y = y.to(device)
+            loss_cal = nn.BCELoss(weight=weight)
+            loss = loss_cal((x+eps), y)
     return loss
 
 def label_gen(label,args):
