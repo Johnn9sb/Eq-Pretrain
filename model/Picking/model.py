@@ -5,7 +5,7 @@ import math
 import sys
 
 sys.path.append('../')
-from ds_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
 
 
 class Wav2vec_Pick(nn.Module):
