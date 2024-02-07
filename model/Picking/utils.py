@@ -31,9 +31,10 @@ def parse_arguments():
 
 def get_dataset(args):
 
-    cwb_path = "/mnt/nas5/johnn9/dataset/cwbsn/"
-    tsm_path = "/mnt/nas5/johnn9/dataset/tsmip/"
-    noi_path = "/mnt/nas5/johnn9/dataset/cwbsn_noise/"
+    data_path = "/mnt/nas5/johnn9/dataset/"
+    cwb_path = data_path + "cwbsn/"
+    tsm_path = data_path + "tsmip/"
+    noi_path = data_path + "cwbsn_noise/"
     cwb = sbd.WaveformDataset(cwb_path,sampling_rate=100)
     c_mask = cwb.metadata["trace_completeness"] == 4
     cwb.filter(c_mask)
