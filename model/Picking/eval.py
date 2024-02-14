@@ -145,7 +145,8 @@ if args.train_model == "wav2vec2":
     model = Wav2vec_Pick(
         device=device,
         decoder_type=args.decoder_type,
-        checkpoint_path=args.checkpoint_path
+        checkpoint_path=args.checkpoint_path,
+        args=args,
     )
 elif args.train_model == "phasenet":
     model = sbm.PhaseNet(phases="PSN", norm="peak")

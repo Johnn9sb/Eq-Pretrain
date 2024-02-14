@@ -1,11 +1,12 @@
-CUDA_VISIBLE_DEVICES=0,1 \
+CUDA_VISIBLE_DEVICES=2,3 \
 exec -a Johnn9_Finetune \
 python eval.py \
---model_name '2_1_768_scratch_linear' \
+--model_name '2_5_scratch_cnn' \
 --train_model 'wav2vec2' \
 --batch_size 32 \
 --num_workers 4 \
---threshold 0.1 \
+--threshold 0.2 \
+--decoder_type 'cnn' \
 # wait
 
 # CUDA_VISIBLE_DEVICES=2,3 \

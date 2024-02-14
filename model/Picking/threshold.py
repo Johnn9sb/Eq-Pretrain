@@ -97,6 +97,7 @@ if args.train_model == "wav2vec2":
         device=device,
         decoder_type=args.decoder_type,
         checkpoint_path=args.checkpoint_path,
+        args=args,
     )
 elif args.train_model == "phasenet":
     model = sbm.PhaseNet(phases="PSN", norm="peak")
