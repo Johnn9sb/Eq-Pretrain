@@ -71,39 +71,39 @@ def label_gen(label):
 
 
 def image_save(batch,x,y,savepath,num,batch_num):
-            waveform1 = batch['X'][batch_num,0]
-            waveform2 = batch['X'][batch_num,1]
-            waveform3 = batch['X'][batch_num,2]
-            p_predict = x[batch_num,0] 
-            p_label = y[batch_num,0]
-            waveform1 = waveform1.detach().numpy()
-            waveform2 = waveform2.detach().numpy()
-            waveform3 = waveform3.detach().numpy()
-            p_predict = p_predict.detach().cpu().numpy()
-            p_label = p_label.detach().cpu().numpy()
-            # 绘制波形数据
-            plt.figure(figsize=(10, 15))
-            # 绘制波形数据
-            plt.subplot(511)  # 第一行的第一个子图
-            plt.plot(waveform1)
-            plt.title('Waveform 1')
-            plt.subplot(512)  # 第一行的第二个子图
-            plt.plot(waveform2)
-            plt.title('Waveform 2')
-            plt.subplot(513)  # 第一行的第三个子图
-            plt.plot(waveform3)
-            plt.title('Waveform 3')
-            plt.subplot(514)  # 第一行的第四个子图
-            plt.plot(p_predict)
-            plt.title('P_predict')
-            plt.subplot(515) 
-            plt.plot(p_label)
-            plt.title('P_label')
-            plt.tight_layout()
-            fignum1 = str(image)
-            savepath = savepath + str(num) + '.png'
-            plt.savefig(savepath)
-            plt.close('all')
+    waveform1 = batch['X'][batch_num,0]
+    waveform2 = batch['X'][batch_num,1]
+    waveform3 = batch['X'][batch_num,2]
+    p_predict = x[batch_num,0] 
+    p_label = y[batch_num,0]
+    waveform1 = waveform1.detach().numpy()
+    waveform2 = waveform2.detach().numpy()
+    waveform3 = waveform3.detach().numpy()
+    p_predict = p_predict.detach().cpu().numpy()
+    p_label = p_label.detach().cpu().numpy()
+    # 绘制波形数据
+    plt.figure(figsize=(10, 15))
+    # 绘制波形数据
+    plt.subplot(511)  # 第一行的第一个子图
+    plt.plot(waveform1)
+    plt.title('Waveform 1')
+    plt.subplot(512)  # 第一行的第二个子图
+    plt.plot(waveform2)
+    plt.title('Waveform 2')
+    plt.subplot(513)  # 第一行的第三个子图
+    plt.plot(waveform3)
+    plt.title('Waveform 3')
+    plt.subplot(514)  # 第一行的第四个子图
+    plt.plot(p_predict)
+    plt.title('P_predict')
+    plt.subplot(515) 
+    plt.plot(p_label)
+    plt.title('P_label')
+    plt.tight_layout()
+    fignum1 = str(image)
+    savepath = savepath + str(num) + '.png'
+    plt.savefig(savepath)
+    plt.close('all')
 
 print("Function load Complete!!!")
 # =========================================================================================================

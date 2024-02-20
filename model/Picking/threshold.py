@@ -21,12 +21,15 @@ logging.getLogger().setLevel(logging.WARNING)
 # =========================================================================================================
 # Parameter init
 args = parse_arguments()
-test_name = 'pick_threshold'
+if args.task == 'pick':
+    test_name = 'pick_threshold'
+elif args.task == 'detect':
+    test_name = 'detect_threshold'
 model_name = args.model_name
 print(model_name)
 ptime = 500
 window = 3000
-threshold = [0.1,0.2,0.3,0.4,0.5,0.6]
+threshold = [0.1,0.2,0.3,0.4,0.5,0.6,0.7]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # =========================================================================================================
 mod_path = "/mnt/nas3/johnn9/checkpoint/"
@@ -75,16 +78,47 @@ phase_dict = {
     "trace_SmS_arrival_sample": "S",
     "trace_Sn_arrival_sample": "S",
 }
-augmentations = [
-    sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
-    sbg.RandomWindow(windowlen=window, strategy="pad",low=250,high=5750),
-    # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
-    sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
-    sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
-    sbg.ChangeDtype(np.float32),
-    sbg.ProbabilisticLabeller(label_columns=phase_dict, sigma=30, dim=0),
-    # sbg.DetectionLabeller(p_phases=p_dict, s_phases=s_dict),
-]
+p_dict = {
+    "trace_p_arrival_sample": "P",
+    "trace_pP_arrival_sample": "P",
+    "trace_P_arrival_sample": "P",
+    "trace_P1_arrival_sample": "P",
+    "trace_Pg_arrival_sample": "P",
+    "trace_Pn_arrival_sample": "P",
+    "trace_PmP_arrival_sample": "P",
+    "trace_pwP_arrival_sample": "P",
+    "trace_pwPm_arrival_sample": "P",
+}
+s_dict = {
+    "trace_s_arrival_sample": "S",
+    "trace_S_arrival_sample": "S",
+    "trace_S1_arrival_sample": "S",
+    "trace_Sg_arrival_sample": "S",
+    "trace_SmS_arrival_sample": "S",
+    "trace_Sn_arrival_sample": "S",   
+}
+if args.task == 'pick':
+    augmentations = [
+        sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
+        sbg.RandomWindow(windowlen=window, strategy="pad",low=250,high=5750),
+        # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
+        sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
+        sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
+        sbg.ChangeDtype(np.float32),
+        sbg.ProbabilisticLabeller(label_columns=phase_dict, sigma=30, dim=0),
+        # sbg.DetectionLabeller(p_phases=p_dict, s_phases=s_dict),
+    ]
+elif args.task == 'detect':
+    augmentations = [
+        sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
+        sbg.RandomWindow(windowlen=window, strategy="pad",low=250,high=5750),
+        # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
+        sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
+        sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
+        sbg.ChangeDtype(np.float32),
+        # sbg.ProbabilisticLabeller(label_columns=phase_dict, sigma=30, dim=0),
+        sbg.DetectionLabeller(p_phases=p_dict, s_phases=s_dict),
+    ]
 dev_gene = sbg.GenericGenerator(dev)
 dev_gene.add_augmentations(augmentations)
 dev_loader = DataLoader(dev_gene,batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers,pin_memory=True)
@@ -130,22 +164,22 @@ print("=====================================================")
 print("Threshold start!!!")
 start_time = time.time()
 f = open(threshold_path,"w")
-for thres in threshold:
-    
-    print("Threshold: " + str(thres) + " start!!")
-    p_tp,p_tn,p_fp,p_fn = 0,0,0,0
-    s_tp,s_tn,s_fp,s_fn = 0,0,0,0
-    p_mean,p_std,p_mae = 0,0,0
-    s_mean,s_std,s_mae = 0,0,0
-    progre = tqdm(dev_loader, total=len(dev_loader), ncols=80)
-    for batch in progre:
-        p_mean_batch,p_std_batch,p_mae_batch = 0,0,0
-        s_mean_batch,s_std_batch,s_mae_batch = 0,0,0
-        x = batch['X'].to(device)
-        y = batch['y'].to(device)
-        # y = label_gen(y.to(device))
-        x = model(x.to(device))
-        if args.task == 'pick':
+if args.task == 'pick':
+    for thres in threshold:
+        
+        print("Threshold: " + str(thres) + " start!!")
+        p_tp,p_tn,p_fp,p_fn = 0,0,0,0
+        s_tp,s_tn,s_fp,s_fn = 0,0,0,0
+        p_mean,p_std,p_mae = 0,0,0
+        s_mean,s_std,s_mae = 0,0,0
+        progre = tqdm(dev_loader, total=len(dev_loader), ncols=80)
+        for batch in progre:
+            p_mean_batch,p_std_batch,p_mae_batch = 0,0,0
+            s_mean_batch,s_std_batch,s_mae_batch = 0,0,0
+            x = batch['X'].to(device)
+            y = batch['y'].to(device)
+            # y = label_gen(y.to(device))
+            x = model(x.to(device))
             if args.train_model == 'eqt':
                 x_tensor = torch.empty(2,len(y),window)
                 for index, item in enumerate(x):
@@ -195,10 +229,10 @@ for thres in threshold:
                 s_std_batch = s_std_batch + s_std_now.item()
                 s_mae_now = torch.mean(torch.abs(xs - ys))
                 s_mae_batch = s_mae_batch + s_mae_now.item()
-# =======================================================================
+    # =======================================================================
                 if args.test_mode == 'true':
                     break
-# =======================================================================           
+    # =======================================================================           
             p_mean = p_mean + (p_mean_batch / args.batch_size)
             p_std = p_std + (p_std_batch / args.batch_size)
             p_mae = p_mae + (p_mae_batch / args.batch_size)
@@ -207,19 +241,19 @@ for thres in threshold:
             s_mae = s_mae + (s_mae_batch / args.batch_size)
 
             progre.set_postfix({"pTP": p_tp, "pFP": p_fp, "pTN": p_tn, "pFN": p_fn})
-# =======================================================================
+    # =======================================================================
             if args.test_mode == 'true':
                 break
-# =======================================================================           
+    # =======================================================================           
 
-    p_mean = p_mean / len(dev_loader)
-    p_std = p_std / len(dev_loader)
-    p_mae = p_mae / len(dev_loader)
-    s_mean = s_mean / len(dev_loader)
-    s_std = s_std / len(dev_loader)
-    s_mae = s_mae / len(dev_loader)
+        p_mean = p_mean / len(dev_loader)
+        p_std = p_std / len(dev_loader)
+        p_mae = p_mae / len(dev_loader)
+        s_mean = s_mean / len(dev_loader)
+        s_std = s_std / len(dev_loader)
+        s_mae = s_mae / len(dev_loader)
 
-    if args.task == 'pick':
+
 
         if p_tp == 0:
             p_recall = 0
@@ -286,6 +320,98 @@ for thres in threshold:
         print('S-phase fp = ' + str(s_fp))
         print('S-phase tn = ' + str(s_tn))
         print('S-phase fn = ' + str(s_fn))
+
+elif args.task == 'detect':
+    for thres in threshold:
+        
+        print("Threshold: " + str(thres) + " start!!")
+        d_tp,d_tn,d_fp,d_fn = 0,0,0,0
+        d_mean,d_std,d_mae = 0,0,0
+        progre = tqdm(dev_loader, total=len(dev_loader), ncols=80)
+        for batch in progre:
+            d_mean_batch,d_std_batch,d_mae_batch = 0,0,0
+            x = batch['X'].to(device)
+            y = batch['y'].to(device)
+            x = model(x.to(device))
+            if args.train_model == 'eqt':
+                x_tensor = torch.empty(1,len(y),window)
+                for index, item in enumerate(x):
+                    x_tensor[index] = item
+                    if index == 0:
+                        break
+                x = x_tensor.permute(1,0,2)
+                x = x.to(device)
+            for num in range(len(x)):
+                xd = x[num,0]
+                yd = y[num,0]
+                    
+                if torch.max(yd) >= thres and torch.max(xd) >= thres:
+                    d_tp = d_tp + 1
+                if torch.max(yd) < thres and torch.max(xd) >= thres:
+                    d_fp = d_fp + 1
+                if torch.max(yd) >= thres and torch.max(xd) < thres:
+                    d_fn = d_fn + 1
+                if torch.max(yd) < thres and torch.max(xd) < thres:
+                    d_tn = d_tn + 1
+                
+                d_mean_now = torch.mean(xd - yd)
+                d_mean_batch = d_mean_batch + d_mean_now.item()
+                d_std_now = torch.std(xd - yd)
+                d_std_batch = d_std_batch + d_std_now.item()
+                d_mae_now = torch.mean(torch.abs(xd - yd))
+                d_mae_batch = d_mae_batch + d_mae_now.item()
+    # =======================================================================
+                if args.test_mode == 'true':
+                    break
+    # =======================================================================           
+            d_mean = d_mean + (d_mean_batch / args.batch_size)
+            d_std = d_std + (d_std_batch / args.batch_size)
+            d_mae = d_mae + (d_mae_batch / args.batch_size)
+
+            progre.set_postfix({"dTP": d_tp, "dFP": d_fp, "dTN": d_tn, "dFN": d_fn})
+    # =======================================================================
+            if args.test_mode == 'true':
+                break
+    # =======================================================================           
+
+        d_mean = d_mean / len(dev_loader)
+        d_std = d_std / len(dev_loader)
+        d_mae = d_mae / len(dev_loader)
+
+        if d_tp == 0:
+            d_recall = 0
+            d_precision = 0
+            d_f1 = 0
+        else:
+            d_recall = d_tp / (d_tp + d_fn)
+            d_precision = d_tp / (d_tp + d_fp)
+            d_f1 = 2*((d_precision * d_recall)/(d_precision+d_recall))
+        # Write Log
+        f.write('==================================================' + '\n')
+        f.write('Threshold = ' + str(thres) + '\n')
+        f.write('Detect precision = ' + str(d_precision) + '\n')
+        f.write('Detect recall = ' + str(d_recall) + '\n')
+        f.write('Detect f1score = ' + str(d_f1) + '\n')
+        f.write('Detect mean = ' + str(d_mean) + '\n')
+        f.write('Detect std = ' + str(d_std) + '\n')
+        f.write('Detect mae = ' + str(d_mae) + '\n')
+        f.write('Detect tp = ' + str(d_tp) + '\n')
+        f.write('Detect fp = ' + str(d_fp) + '\n')
+        f.write('Detect tn = ' + str(d_tn) + '\n')
+        f.write('Detect fn = ' + str(d_fn) + '\n')
+        
+        print('==================================================')
+        print('Threshold = ' + str(thres))
+        print('Detect precision = ' + str(d_precision))
+        print('Detect recall = ' + str(d_recall))
+        print('Detect f1score = ' + str(d_f1))
+        print('Detect mean = ' + str(d_mean))
+        print('Detect std = ' + str(d_std))
+        print('Detect mae = ' + str(d_mae))
+        print('Detect tp = ' + str(d_tp))
+        print('Detect fp = ' + str(d_fp))
+        print('Detect tn = ' + str(d_tn))
+        print('Detect fn = ' + str(d_fn))
 
 f.close()
 end_time = time.time()

@@ -4,17 +4,20 @@
 # --batch_size 400 \
 # --num_workers 8 \
 
-CUDA_VISIBLE_DEVICES=2,3 \
+CUDA_VISIBLE_DEVICES=0,1 \
 exec -a Johnn9_Finetune \
 python threshold.py \
---model_name '2_5_scratch_cnn' \
---train_model 'wav2vec2' \
+--model_name 'eqt_detect' \
+--train_model 'eqt' \
 --batch_size 32 \
 --num_workers 4 \
 --parl 'y' \
---decoder_type 'cnn' \
-
+--task 'detect' \
 # --test_mode 'true' \
+# --decoder_type 'cnn' \
+
+
+
 
 
 # CUDA_VISIBLE_DEVICES=0 \
