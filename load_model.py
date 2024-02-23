@@ -4,6 +4,7 @@ import torch.nn.functional as F
 import sys
 
 # Load model with this command!!!
+# from model.wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
 from model.ws_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
 w2v = Wav2Vec2Model(Wav2Vec2Config)
 
