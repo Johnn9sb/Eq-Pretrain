@@ -25,6 +25,7 @@ def parse_arguments():
     parser.add_argument('--task',               default='pick',                 help='pick or detect')
     parser.add_argument('--freeze',             default='y',                    help='y or n')
     parser.add_argument('--lr',                 default='0.0005',   type=float, help='Learning rate')
+    parser.add_argument('--weighted_sum'        default='n',                    help='y or n')
 
     args = parser.parse_args()
     return args

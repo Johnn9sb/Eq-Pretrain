@@ -5,7 +5,8 @@ import math
 import sys
 
 sys.path.append('../')
-from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+# from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+from ws_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
 
 
 class Wav2vec_Pick(nn.Module):
@@ -21,6 +22,7 @@ class Wav2vec_Pick(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.relu = nn.ReLU()
         self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
+        self.weights = nn.Parameter(torch.full((12,),1.0))
 
         if decoder_type == 'linear':
             self.Li_1 = nn.Sequential(
@@ -94,7 +96,6 @@ class Wav2vec_Pick(nn.Module):
                 nn.Linear(in_features=64, out_features=2),
             )
 
-
     def forward(self, x):
         # Wav2Vec frozen
         if self.args.freeze == 'n':
@@ -102,6 +103,18 @@ class Wav2vec_Pick(nn.Module):
         else:
             with torch.no_grad():
                 x = self.w2v(x)
+        if self.args.weighted_sum == 'y':
+            weights = F.softmax(self.weights,dim=0)
+            wei = 0
+            ws = torch.zeros_like(x[0][0])
+            ws = torch.permute(ws,(1,0,2))
+            for i in x:
+                temp = torch.permute(i[0],(1,0,2))
+                temp = temp * weights[wei]
+                wei = wei + 1
+                ws = ws + temp
+            x = ws
+
         if self.decoder_type == 'linear':
             x = self.Li_1(x.permute(0,2,1))
             x = self.Li_2(x.permute(0,2,1))
