@@ -25,8 +25,40 @@ class Wav2Vec_Mag(nn.Module):
         self.dropout = nn.Dropout(0.1)
         self.decoder_type = decoder_type
         if decoder_type == 'linear':
-            self.decoder_time = nn.Linear(wavelength//2, 1)
-            self.decoder_dim = nn.Linear(128, 1)
+            self.decoder_time = nn.Linear(wavelength//4, 1)
+            self.decoder_dim = nn.Linear(768, 1)
+        elif decoder_type == 'cnn':
+            self.cnn_1 = nn.Sequential(
+                nn.Conv1d(768, 256, kernel_size=7, padding='same'),
+                nn.BatchNorm1d(256),
+                nn.MaxPool1d(2),
+                nn.ReLU(),
+                nn.Dropout(p=0.1),
+            )
+            self.cnn_2 = nn.Sequential(
+                nn.Conv1d(256, 128, kernel_size=5, padding='same'),
+                nn.BatchNorm1d(128),
+                nn.MaxPool1d(2),
+                nn.ReLU(),
+                nn.Dropout(p=0.1),
+            )
+            self.cnn_3 = nn.Sequential(
+                nn.Conv1d(128, 64, kernel_size=5,padding='same'),
+                nn.BatchNorm1d(64),
+                nn.MaxPool1d(2),
+                nn.ReLU(),
+                nn.Dropout(p=0.1),
+            )
+            self.cnn_4 = nn.Sequential(
+                nn.Conv1d(64, 32, kernel_size=11),
+                nn.BatchNorm1d(32),
+                nn.MaxPool1d(2),
+                nn.ReLU(),
+                nn.Dropout(p=0.1),
+            )
+            self.flatten = nn.Flatten()
+            self.out = nn.Linear(1312,1)
+
         elif decoder_type == 'CNN_Linear':
             self.conv = nn.Sequential(nn.Conv1d(128, 96, kernel_size=7, padding='same'),
                                    nn.BatchNorm1d(96),
@@ -81,12 +113,19 @@ class Wav2Vec_Mag(nn.Module):
     def forward(self, wave):
         # wave: (batch, 1500, 128)
 
-        with torch.no_grad():
-            rep = self.w2v(wave)
+        # with torch.no_grad():
+        rep = self.w2v(wave)
 
         if self.decoder_type == 'linear':
             rep_time_reduction = self.decoder_time(rep.permute(0,2,1)).permute(0,2,1)
             out = self.decoder_dim(rep_time_reduction)
+        elif self.decoder_type == 'cnn':
+            x = self.cnn_1(rep.permute(0,2,1))
+            x = self.cnn_2(x)
+            x = self.cnn_3(x)
+            x = self.cnn_4(x)
+            out = self.flatten(x)
+            out = self.out(out)
 
         elif self.decoder_type == 'CNN_Linear':
             cnn_out = self.conv(rep.permute(0,2,1))

@@ -144,7 +144,7 @@ def apply_filter(data, isCWBSN=False, level=-1, isStead=False, isNoise=False, in
             complete_mask = data.metadata['trace_completeness'] == 1
 
         # 只選包含一個事件的 trace
-        single_mask = data.metadata['trace_event_number'] == 1
+        single_mask = data.metadata['trace_number_of_event'] == 1
 
         # making final mask
         mask = np.logical_and(single_mask, complete_mask)

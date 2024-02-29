@@ -37,45 +37,25 @@ class Wav2vec_Pick(nn.Module):
         
         elif decoder_type == 'cnn':
             self.cnn_1 = nn.Sequential(
-                nn.Conv1d(
-                    in_channels=768,
-                    out_channels=256,
-                    kernel_size=7,
-                    padding='same',
-                ),
+                nn.Conv1d(768, 256, kernel_size=7, padding='same'),
                 nn.BatchNorm1d(256),
                 nn.ReLU(),
                 nn.Dropout(p=0.1),
             )
             self.cnn_2 = nn.Sequential(
-                nn.Conv1d(
-                    in_channels=256,
-                    out_channels=256,
-                    kernel_size=5,
-                    padding='same',
-                ),
+                nn.Conv1d(256, 256, kernel_size=5, padding='same'),
                 nn.BatchNorm1d(256),
                 nn.ReLU(),
                 nn.Dropout(p=0.1),
             )
             self.cnn_3 = nn.Sequential(
-                nn.Conv1d(
-                    in_channels=256,
-                    out_channels=256,
-                    kernel_size=5,
-                    padding='same',
-                ),
+                nn.Conv1d(256, 256, kernel_size=5,padding='same'),
                 nn.BatchNorm1d(256),
                 nn.ReLU(),
                 nn.Dropout(p=0.1),
             )
             self.cnn_4 = nn.Sequential(
-                nn.Conv1d(
-                    in_channels=256,
-                    out_channels=2,
-                    kernel_size=11,
-                    padding='same',
-                ),
+                nn.Conv1d(256, 2, kernel_size=11, padding='same'),
                 nn.Sigmoid(),
             )
         
