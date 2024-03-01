@@ -137,7 +137,7 @@ def train(model, optimizer, dataloader, valid_loader, device, cur_epoch, opt, eq
     train_loss = 0.0
     min_loss = 1000
 
-    train_loop = tqdm(enumerate(dataloader), total=len(dataloader))
+    train_loop = tqdm(enumerate(dataloader), total=len(dataloader), ncols=80)
     for idx, (data) in train_loop:        
         out = model(data['X'].to(device))
             
@@ -168,7 +168,7 @@ def valid(model, dataloader, device, cur_epoch, opt, eqt_reg=None):
     model.eval()
     dev_loss = 0.0
 
-    valid_loop = tqdm(enumerate(dataloader), total=len(dataloader))
+    valid_loop = tqdm(enumerate(dataloader), total=len(dataloader), ncols=80)
     for idx, data in valid_loop:
         with torch.no_grad():               
             out = model(data['X'].to(device))
