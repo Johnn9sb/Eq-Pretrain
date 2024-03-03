@@ -114,7 +114,7 @@ def inference(opt, model, test_loader, device):
             with torch.no_grad():
                 out = model(data['X'].to(device)).cpu()
                 target = data['mag']
-                        
+
                 pred += out
                 gt += target
 
@@ -141,13 +141,13 @@ def score(pred, gt, output_dir, f, status):
     mag4_std = np.std(mag4_diff)
     mag4_noise_r2 = r2_score(np.array(pred)[mag4_mask], np.array(gt)[mag4_mask])
 
-    logging.info(f"Total -> MAE: {round(total_mae, 4)}, MSE: {round(total_mse, 4)}, std: {round(total_std, 4)}, R2score: {round(total_r2, 4)}\n")
-    logging.info(f"w/o Noise -> MAE: {round(without_noise_mae, 4)}, MSE: {round(without_noise_mse, 4)}, std: {round(without_noise_std, 4)}, R2score: {round(without_noise_r2, 4)}\n")
-    logging.info(f"MAG4 -> MAE: {round(mag4_mae, 4)}, MSE: {round(mag4_mse, 4)}, std: {round(mag4_std, 4)}, R2score: {round(mag4_noise_r2, 4)}\n")
+    logging.info(f"Total -> MAE: {round(total_mae, 4)}, MSE: {round(total_mse, 4)}, std: {round(total_std, 4)}, R2score: {round(total_r2, 4)}, Count: {total_diff.shape}\n")
+    logging.info(f"w/o Noise -> MAE: {round(without_noise_mae, 4)}, MSE: {round(without_noise_mse, 4)}, std: {round(without_noise_std, 4)}, R2score: {round(without_noise_r2, 4)}, Count: {without_noise_diff.shape}\n")
+    logging.info(f"MAG4 -> MAE: {round(mag4_mae, 4)}, MSE: {round(mag4_mse, 4)}, std: {round(mag4_std, 4)}, R2score: {round(mag4_noise_r2, 4)}, Count: {mag4_diff.shape}\n")
 
-    f.write(f"Total -> MAE: {round(total_mae, 4)}, MSE: {round(total_mse, 4)}, std: {round(total_std, 4)}, R2score: {round(total_r2, 4)}\n")
-    f.write(f"w/o Noise -> MAE: {round(without_noise_mae, 4)}, MSE: {round(without_noise_mse, 4)}, std: {round(without_noise_std, 4)}, R2score: {round(without_noise_r2, 4)}\n")
-    f.write(f"MAG4 -> MAE: {round(mag4_mae, 4)}, MSE: {round(mag4_mse, 4)}, std: {round(mag4_std, 4)}, R2score: {round(mag4_noise_r2, 4)}\n")
+    f.write(f"Total -> MAE: {round(total_mae, 4)}, MSE: {round(total_mse, 4)}, std: {round(total_std, 4)}, R2score: {round(total_r2, 4)}, Count: {total_diff.shape}\n")
+    f.write(f"w/o Noise -> MAE: {round(without_noise_mae, 4)}, MSE: {round(without_noise_mse, 4)}, std: {round(without_noise_std, 4)}, R2score: {round(without_noise_r2, 4)}, Count: {without_noise_diff.shape}\n")
+    f.write(f"MAG4 -> MAE: {round(mag4_mae, 4)}, MSE: {round(mag4_mse, 4)}, std: {round(mag4_std, 4)}, R2score: {round(mag4_noise_r2, 4)}, Count: {mag4_diff.shape}\n")
 
     with open(os.path.join(output_dir, f'{status}_pred.pkl'), 'wb') as f:
         pickle.dump(pred, f)
@@ -202,7 +202,7 @@ if __name__ == '__main__':
         # load datasets
         print('loading datasets')
         dev_generator, test_generator = set_generators(opt)
-        dev_loader = DataLoader(dev_generator, batch_size=opt.batch_size, shuffle=False, num_workers=opt.workers)
+        dev_loader = DataLoader(dev_generator, batch_size=opt.batch_size, shuffle=True, num_workers=opt.workers)
         test_loader = DataLoader(test_generator, batch_size=opt.batch_size, shuffle=False, num_workers=opt.workers)
         
         logging.info('dev: %d, test: %d' %(len(dev_generator), len(test_generator)))
