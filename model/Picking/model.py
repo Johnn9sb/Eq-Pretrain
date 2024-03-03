@@ -5,8 +5,8 @@ import math
 import sys
 
 sys.path.append('../')
-# from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
-from ws_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+# from ws_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
 
 
 class Wav2vec_Pick(nn.Module):
@@ -22,7 +22,8 @@ class Wav2vec_Pick(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.relu = nn.ReLU()
         self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
-        self.weights = nn.Parameter(torch.full((12,),1.0))
+        if args.weighted_sum == 'y':
+            self.weights = nn.Parameter(torch.full((12,),1.0))
 
         if decoder_type == 'linear':
             self.Li_1 = nn.Sequential(

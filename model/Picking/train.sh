@@ -18,7 +18,7 @@
 CUDA_VISIBLE_DEVICES=3 \
 exec -a Johnn9_Finetune \
 python train.py \
---model_name '2_23_lem35000_frez_ws_cnn' \
+--model_name '2_22_lem35000_frez_cnn' \
 --batch_size 64 \
 --num_workers 4 \
 --epochs 200 \
