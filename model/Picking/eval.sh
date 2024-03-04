@@ -10,17 +10,18 @@
 # --decoder_type 'cnn' \
 # --test_mode 'true' \
 
-CUDA_VISIBLE_DEVICES=0 \
+CUDA_VISIBLE_DEVICES=3 \
 exec -a Johnn9_Finetune \
 python eval.py \
 --model_name '2_22_lem35000_frez_cnn' \
 --train_model 'wav2vec2' \
---batch_size 32 \
+--batch_size 64 \
 --num_workers 4 \
 --decoder_type 'cnn' \
 --parl 'y' \
 --task 'pick' \
---threshold 0.4 \
+--threshold 0.2 \
+--weighted_sum 'n' \
 # --test_mode 'true' \
 
 # CUDA_VISIBLE_DEVICES=0,1 \

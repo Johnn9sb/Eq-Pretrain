@@ -9,16 +9,17 @@
 # --decoder_type 'cnn' \
 # --test_mode 'true' \
 
-CUDA_VISIBLE_DEVICES=0 \
+CUDA_VISIBLE_DEVICES=1 \
 exec -a Johnn9_Finetune \
 python threshold.py \
---model_name '2_22_lem35000_frez_cnn' \
+--model_name '2_23_lem35000_frez_ws_cnn' \
 --train_model 'wav2vec2' \
---batch_size 32 \
+--batch_size 64 \
 --num_workers 4 \
 --decoder_type 'cnn' \
 --parl 'y' \
 --task 'pick' \
+--weighted_sum 'y' \
 # --test_mode 'true' \
 
 
