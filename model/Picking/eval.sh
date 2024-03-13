@@ -13,7 +13,7 @@
 CUDA_VISIBLE_DEVICES=3 \
 exec -a Johnn9_Finetune \
 python eval.py \
---model_name '2_22_lem35000_frez_cnn' \
+--model_name '3_4_lem50000_frez_cnn' \
 --train_model 'wav2vec2' \
 --batch_size 64 \
 --num_workers 4 \
