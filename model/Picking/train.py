@@ -96,7 +96,7 @@ def loss_fn(x,y,args,eps=1e-8):
             loss_cal = nn.BCELoss(weight = weight)
             loss = loss_cal((x+eps), y)
         elif args.train_model == 'eqt':
-            x_tensor = torch.empty(1,len(y),3000)
+            x_tensor = torch.empty(1,len(y),6000)
             for index, item in enumerate(x):
                 x_tensor[index] = item
                 if index == 0:
@@ -260,8 +260,10 @@ if args.train_model == "wav2vec2":
 elif args.train_model == "phasenet":
     model = sbm.PhaseNet(phases="PSN", norm="peak")
 elif args.train_model == "eqt":
-    model = sbm.EQTransformer(in_samples=window, phases='PS')
-
+    if args.task == 'pick':
+        model = sbm.EQTransformer(in_samples=3000, phases='PS')
+    elif args.task == 'detect':
+        model = sbm.EQTransformer(in_samples=6000, phases='PS')
 if parl == 'y':
     num_gpus = torch.cuda.device_count()
     if num_gpus > 0:

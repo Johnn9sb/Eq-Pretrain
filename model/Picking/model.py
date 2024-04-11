@@ -108,7 +108,7 @@ class Wav2vec_Pick(nn.Module):
             x = self.upsample(x)
             x = self.cnn_3(x)
             x = self.cnn_4(x)
-
+            
         elif self.decoder_type == 'low_linear':
             x = x.view(x.size(0), x.size(1), -1, 4)
             x = x.sum(dim=-1)
