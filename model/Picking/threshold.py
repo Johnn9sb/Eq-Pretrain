@@ -22,14 +22,15 @@ logging.getLogger().setLevel(logging.WARNING)
 # Parameter init
 args = parse_arguments()
 if args.task == 'pick':
-    test_name = 'pick_threshold'
+    test_name = 'pick_threshold' + args.dataset
 elif args.task == 'detect':
-    test_name = 'detect_threshold'
+    test_name = 'detect_threshold' + args.dataset
 model_name = args.model_name
 print(model_name)
 ptime = 500
 window = 3000
-threshold = [0.1,0.2,0.3,0.4,0.5,0.6,0.7]
+threshold = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
+# threshold = [0.7,0.8,0.9]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # =========================================================================================================
 mod_path = "/mnt/nas3/johnn9/checkpoint/"
@@ -178,7 +179,6 @@ if args.task == 'pick':
             s_mean_batch,s_std_batch,s_mae_batch = 0,0,0
             x = batch['X'].to(device)
             y = batch['y'].to(device)
-            # y = label_gen(y.to(device))
             x = model(x.to(device))
             if args.train_model == 'eqt':
                 x_tensor = torch.empty(2,len(y),window)

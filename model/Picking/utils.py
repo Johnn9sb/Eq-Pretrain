@@ -26,6 +26,7 @@ def parse_arguments():
     parser.add_argument('--freeze',             default='y',                    help='y or n')
     parser.add_argument('--lr',                 default='0.0005',   type=float, help='Learning rate')
     parser.add_argument('--weighted_sum',       default='n',                    help='y or n')
+    parser.add_argument('--dataset',            default='tw',                   help='tw or stead')
 
     args = parser.parse_args()
     return args
@@ -36,22 +37,30 @@ def get_dataset(args):
     cwb_path = data_path + "cwbsn/"
     tsm_path = data_path + "tsmip/"
     noi_path = data_path + "cwbsn_noise/"
-    cwb = sbd.WaveformDataset(cwb_path,sampling_rate=100)
-    c_mask = cwb.metadata["trace_completeness"] == 4
-    cwb.filter(c_mask)
-    c_train, c_dev, c_test = cwb.train_dev_test()
-    tsm = sbd.WaveformDataset(tsm_path,sampling_rate=100)
-    t_mask = tsm.metadata["trace_completeness"] == 1
-    tsm.filter(t_mask)
-    t_train, t_dev, t_test = tsm.train_dev_test()
-    if args.noise_need == 'true':
-        noise = sbd.WaveformDataset(noi_path,sampling_rate=100)
-        n_train, n_dev, n_test = noise.train_dev_test()
-        train = c_train + t_train + n_train
-        dev = c_dev + t_dev + n_dev
-        test = c_test + t_test + n_test
-    elif args.noise_need == 'false':
-        train = c_train + t_train
-        dev = c_dev + t_dev
-        test = c_test + t_test
+    stead_path = data_path + "stead/"
+
+    if args.dataset == 'tw':
+        cwb = sbd.WaveformDataset(cwb_path, sampling_rate=100)
+        c_mask = cwb.metadata["trace_completeness"] == 4
+        cwb.filter(c_mask)
+        c_train, c_dev, c_test = cwb.train_dev_test()
+        tsm = sbd.WaveformDataset(tsm_path, sampling_rate=100)
+        t_mask = tsm.metadata["trace_completeness"] == 1
+        tsm.filter(t_mask)
+        t_train, t_dev, t_test = tsm.train_dev_test()
+        if args.noise_need == 'true':
+            noise = sbd.WaveformDataset(noi_path, sampling_rate=100)
+            n_train, n_dev, n_test = noise.train_dev_test()
+            train = c_train + t_train + n_train
+            dev = c_dev + t_dev + n_dev
+            test = c_test + t_test + n_test
+        elif args.noise_need == 'false':
+            train = c_train + t_train
+            dev = c_dev + t_dev
+            test = c_test + t_test
+        print('tw dataset')
+    elif args.dataset == 'stead':
+        stead = sbd.WaveformDataset(stead_path, sampling_rate=100)
+        train, dev, test = stead.train_dev_test()
+        print('stead dataset')
     return train,dev,test

@@ -30,7 +30,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 parl = 'y'  # y,n
 # =========================================================================================================
 mod_path = "/mnt/nas3/johnn9/checkpoint/"
-test_name = 'threshold=' + str(threshold) + '_eval'
+test_name = 'threshold=' + str(threshold) + '_eval' + args.dataset
 model_path = mod_path + model_name
 threshold_path = model_path + '/' + test_name + '.txt'
 loadmodel = model_path + '/' + 'last_checkpoint.pt' 
@@ -55,7 +55,7 @@ print("Init Complete!!!")
 # =========================================================================================================
 # DataLoad
 start_time = time.time()
-_,dev,test = get_dataset(args)
+_,_,test = get_dataset(args)
 end_time = time.time()
 elapsed_time = end_time - start_time
 print("=====================================================")

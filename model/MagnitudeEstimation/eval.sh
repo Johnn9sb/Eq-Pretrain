@@ -7,4 +7,4 @@ python test.py \
 --workers 4 \
 --level 4 \
 --without_noise 'False' \
---w2v_path '/mnt/nas3/johnn9/pretrain/11-54-34/checkpoints/checkpoint_46_50000.pt' \
+--w2v_path '/mnt/nas3/johnn9/pretrain/11-54-34/checkpoints/checkpoint_46_50000.pt' \ 

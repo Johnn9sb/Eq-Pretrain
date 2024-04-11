@@ -1,4 +1,4 @@
-CUDA_VISIBLE_DEVICES=1 \
+CUDA_VISIBLE_DEVICES=0,1 \
 python train.py \
 --save_path '/mnt/nas3/johnn9/mag_checkpoint/lem_freeze_50000' \
 --model_opt 'w2v' \

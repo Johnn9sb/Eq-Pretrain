@@ -221,7 +221,7 @@ s_dict = {
 if args.task == 'pick':
     augmentations = [
         sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
-        sbg.RandomWindow(windowlen=window, strategy="pad",low=250,high=5750),
+        sbg.RandomWindow(windowlen=3000, strategy="pad",low=250,high=5750),
         # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
         sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
         sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
@@ -231,8 +231,8 @@ if args.task == 'pick':
     ]
 elif args.task == 'detect':
     augmentations = [
-        sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
-        sbg.RandomWindow(windowlen=window, strategy="pad",low=250,high=5750),
+        sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=1000, windowlen=6000, selection="first", strategy="pad"),
+        sbg.RandomWindow(windowlen=6000, strategy="pad",low=750,high=5000),
         # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
         sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
         sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
