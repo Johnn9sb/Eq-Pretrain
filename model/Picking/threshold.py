@@ -30,13 +30,13 @@ print(model_name)
 ptime = 500
 window = 3000
 threshold = [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9]
-# threshold = [0.7,0.8,0.9]
+# threshold = [0.3,0.4,0.5,0.6,0.7,0.8,0.9]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # =========================================================================================================
 mod_path = "/mnt/nas3/johnn9/checkpoint/"
 model_path = mod_path + model_name
 threshold_path = model_path + '/' + test_name + '.txt'
-loadmodel = model_path + '/' + 'last_checkpoint.pt' 
+loadmodel = model_path + '/' + 'best_checkpoint.pt' 
 print("Init Complete!!!")
 # =========================================================================================================
 # DataLoad
@@ -111,8 +111,8 @@ if args.task == 'pick':
     ]
 elif args.task == 'detect':
     augmentations = [
-        sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
-        sbg.RandomWindow(windowlen=window, strategy="pad",low=250,high=5750),
+        sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=1000, windowlen=6000, selection="first", strategy="pad"),
+        sbg.RandomWindow(windowlen=6000, strategy="pad",low=750,high=5000),
         # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
         sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
         sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
@@ -137,8 +137,10 @@ if args.train_model == "wav2vec2":
 elif args.train_model == "phasenet":
     model = sbm.PhaseNet(phases="PSN", norm="peak")
 elif args.train_model == "eqt":
-    model = sbm.EQTransformer(in_samples=window, phases='PS')
-
+    if args.task == 'pick':
+        model = sbm.EQTransformer(in_samples=3000, phases='PS')
+    elif args.task == 'detect':
+        model = sbm.EQTransformer(in_samples=6000, phases='PS')
 if args.parl == 'y':
     num_gpus = torch.cuda.device_count()
     if num_gpus > 0:
@@ -334,7 +336,7 @@ elif args.task == 'detect':
             y = batch['y'].to(device)
             x = model(x.to(device))
             if args.train_model == 'eqt':
-                x_tensor = torch.empty(1,len(y),window)
+                x_tensor = torch.empty(1,len(y),6000)
                 for index, item in enumerate(x):
                     x_tensor[index] = item
                     if index == 0:

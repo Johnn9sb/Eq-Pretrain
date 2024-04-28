@@ -11,6 +11,7 @@ import re
 import pandas as pd
 from argparse import Namespace
 from model import *
+from wmseg_dataparallel import BalancedDataParallel
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -22,7 +23,7 @@ def parse_args():
     parser.add_argument("--device", type=str, default='cpu')
     parser.add_argument('--resume_training', type=bool, default=False)
     parser.add_argument('--pretrained_path', type=str, default='none')
-    parser.add_argument('--w2v_path', type=str, default='../../checkpoint.pt')
+    parser.add_argument('--w2v_path', type=str, default='None')
     parser.add_argument('--load_specific_model', type=str, default='model')
     parser.add_argument('--gradient_accumulation', type=int, default=1)
     parser.add_argument('--clip_norm', type=float, default=0.01)
@@ -264,6 +265,7 @@ def load_model(opt, device):
         model = MagNet()
 
     return model.to(device)
+    # return BalancedDataParallel(32, model.to(device))
 
 def loss_fn(opt, pred, gt, device):
     criterion = nn.MSELoss()

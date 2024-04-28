@@ -276,6 +276,7 @@ model.cuda();
 model.train()
 print(model)
 optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+print(args.lr)
 scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lr_lambda)
 
 

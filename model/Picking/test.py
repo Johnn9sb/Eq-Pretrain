@@ -20,16 +20,50 @@ import logging
 from datetime import datetime
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+import pandas as pd
 
 cwb_path = "/mnt/nas5/johnn9/dataset/cwbsn/"
 tsm_path = "/mnt/nas5/johnn9/dataset/tsmip/"
 noi_path = "/mnt/nas5/johnn9/dataset/cwbsn_noise/"
 mod_path = "/mnt/nas3/johnn9/checkpoint/"
 
-tsm = sbd.WaveformDataset(tsm_path,sampling_rate=100)
-t_mask = tsm.metadata["trace_completeness"] == 1
-tsm.filter(t_mask)
-t_train, t_dev, _ = tsm.train_dev_test()
+cwb = sbd.WaveformDataset(cwb_path,sampling_rate=100)
+c_train, _, _ = cwb.train_dev_test()
+print(len(c_train))
+
+
+mask = cwb.metadata["trace_completeness"] == 4
+cwb.filter(mask)
+c_train, _, _ = cwb.train_dev_test()
+print(len(c_train))
+
+p_mask = cwb.metadata["trace_p_arrival_sample"].notna()
+s_mask = cwb.metadata["trace_s_arrival_sample"].notna()
+cwb.filter(p_mask)
+cwb.filter(s_mask)
+c_train, _, _ = cwb.train_dev_test()
+
+print(len(c_train))
+
+
+sys.exit()
+
+mask = cwb.metadata["trace_completeness"] == 1
+cwb.filter(mask)
+c_train, _, _ = cwb.train_dev_test()
+
+print(type(c_train))
+print(len(c_train))
+
+p_mask = cwb.metadata["trace_p_arrival_sample"].notna()
+s_mask = cwb.metadata["trace_s_arrival_sample"].notna()
+cwb.filter(p_mask)
+cwb.filter(s_mask)
+c_train, _, _ = cwb.train_dev_test()
+
+print(len(c_train))
+
+sys.exit()
 
 phase_dict = {
     "trace_p_arrival_sample": "P",
@@ -48,6 +82,25 @@ phase_dict = {
     "trace_SmS_arrival_sample": "S",
     "trace_Sn_arrival_sample": "S",
 }
+p_dict = {
+    "trace_p_arrival_sample": "P",
+    "trace_pP_arrival_sample": "P",
+    "trace_P_arrival_sample": "P",
+    "trace_P1_arrival_sample": "P",
+    "trace_Pg_arrival_sample": "P",
+    "trace_Pn_arrival_sample": "P",
+    "trace_PmP_arrival_sample": "P",
+    "trace_pwP_arrival_sample": "P",
+    "trace_pwPm_arrival_sample": "P",
+}
+s_dict = {
+    "trace_s_arrival_sample": "S",
+    "trace_S_arrival_sample": "S",
+    "trace_S1_arrival_sample": "S",
+    "trace_Sg_arrival_sample": "S",
+    "trace_SmS_arrival_sample": "S",
+    "trace_Sn_arrival_sample": "S",   
+}
 
 augmentations = [
     sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=1000, windowlen=6000, selection="first", strategy="pad"),
@@ -56,11 +109,12 @@ augmentations = [
     sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
     sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
     sbg.ChangeDtype(np.float32),
-    sbg.ProbabilisticLabeller(label_columns=phase_dict, sigma=30, dim=0),
-    # sbg.DetectionLabeller(p_phases=p_dict, s_phases=s_dict),
+    # sbg.ProbabilisticLabeller(label_columns=phase_dict, sigma=30, dim=0),
+    sbg.DetectionLabeller(p_phases=p_dict, s_phases=s_dict),
 ]
 dev_gene = sbg.GenericGenerator(t_dev)
 dev_gene.add_augmentations(augmentations)
+
 dev_loader = DataLoader(dev_gene,batch_size=100, shuffle=False, num_workers=4)
 progre = tqdm(enumerate(dev_loader),total=len(dev_loader),ncols=80)
 for batch_id, batch in progre:
@@ -71,6 +125,8 @@ for batch_id, batch in progre:
     break
 
 y = y[:,0,:]
+
+
 
 plt.figure(figsize=(10, 3))  # 设置图形的大小
 
@@ -84,3 +140,9 @@ plt.ylabel('Value')
 savepath = './test.png'
 plt.savefig(savepath)
 plt.close('all')
+
+print(y.shape)
+rows_check = torch.any(torch.all(y == 0, dim=-1))
+
+exists_zero_tensor = rows_check
+print(exists_zero_tensor)

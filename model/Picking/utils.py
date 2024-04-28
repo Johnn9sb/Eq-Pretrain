@@ -43,10 +43,19 @@ def get_dataset(args):
         cwb = sbd.WaveformDataset(cwb_path, sampling_rate=100)
         c_mask = cwb.metadata["trace_completeness"] == 4
         cwb.filter(c_mask)
-        c_train, c_dev, c_test = cwb.train_dev_test()
         tsm = sbd.WaveformDataset(tsm_path, sampling_rate=100)
         t_mask = tsm.metadata["trace_completeness"] == 1
         tsm.filter(t_mask)
+        if args.task == 'detect':
+            cp_mask = cwb.metadata["trace_p_arrival_sample"].notna()
+            cs_mask = cwb.metadata["trace_s_arrival_sample"].notna()
+            cwb.filter(cp_mask)
+            cwb.filter(cs_mask)
+            tp_mask = tsm.metadata["trace_p_arrival_sample"].notna()
+            ts_mask = tsm.metadata["trace_s_arrival_sample"].notna()
+            tsm.filter(tp_mask)
+            tsm.filter(ts_mask)
+        c_train, c_dev, c_test = cwb.train_dev_test()
         t_train, t_dev, t_test = tsm.train_dev_test()
         if args.noise_need == 'true':
             noise = sbd.WaveformDataset(noi_path, sampling_rate=100)
@@ -59,8 +68,12 @@ def get_dataset(args):
             dev = c_dev + t_dev
             test = c_test + t_test
         print('tw dataset')
+        print('c_train = ', len(c_train))
+        print('t_train = ', len(t_train))
+        print('n_train = ', len(n_train))
     elif args.dataset == 'stead':
         stead = sbd.WaveformDataset(stead_path, sampling_rate=100)
         train, dev, test = stead.train_dev_test()
         print('stead dataset')
+        print('train = ', len(c_train))
     return train,dev,test

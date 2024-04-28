@@ -5,7 +5,8 @@ import math
 import sys
 
 sys.path.append('../')
-from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+# from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+from ws_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
 
 class Wav2Vec_Mag(nn.Module):
     def __init__(self, decoder_type, wavelength, device, checkpoint_path='../../checkpoint.pt'):
@@ -22,6 +23,10 @@ class Wav2Vec_Mag(nn.Module):
             param.requires_grad = False
         print("Finish loading pretrained Wav2Vec...")
         
+
+        self.weights = nn.Parameter(torch.full((12,),1.0))
+
+
         self.dropout = nn.Dropout(0.1)
         self.decoder_type = decoder_type
         if decoder_type == 'linear':
@@ -114,7 +119,22 @@ class Wav2Vec_Mag(nn.Module):
         # wave: (batch, 1500, 128)
 
         # with torch.no_grad():
+        #     rep = self.w2v(wave)
+
         rep = self.w2v(wave)
+
+        weighted_sum = 'y'
+        if weighted_sum == 'y':
+            weights = F.softmax(self.weights,dim=0)
+            wei = 0
+            ws = torch.zeros_like(rep[0][0])
+            ws = torch.permute(ws,(1,0,2))
+            for i in rep:
+                temp = torch.permute(i[0],(1,0,2))
+                temp = temp * weights[wei]
+                wei = wei + 1
+                ws = ws + temp
+            rep = ws
 
         if self.decoder_type == 'linear':
             rep_time_reduction = self.decoder_time(rep.permute(0,2,1)).permute(0,2,1)

@@ -1,7 +1,7 @@
 # CUDA_VISIBLE_DEVICES=0,1 \
 # exec -a Johnn9_Finetune \
 # python threshold.py \
-# --model_name 'phasenet' \
+# --model_name 'phasenet_1000' \
 # --train_model 'phasenet' \
 # --batch_size 64 \
 # --num_workers 4 \
@@ -13,14 +13,14 @@
 CUDA_VISIBLE_DEVICES=0,1 \
 exec -a Johnn9_Finetune \
 python threshold.py \
---model_name '3_4_lem50000_wei_cnn' \
+--model_name '4_23_scratch_1000_cnn' \
 --train_model 'wav2vec2' \
 --batch_size 64 \
 --num_workers 4 \
 --decoder_type 'cnn' \
 --parl 'y' \
 --task 'pick' \
---weighted_sum 'y' \
---dataset 'stead' \
+--weighted_sum 'n' \
+# --dataset 'stead' \
 # --test_mode 'true' \
 
