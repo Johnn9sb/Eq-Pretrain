@@ -28,18 +28,18 @@ class Wav2vec_Pick(nn.Module):
         if args.weighted_sum == 'y':
             self.weights = nn.Parameter(torch.full((12,),1.0))
 
-        if decoder_type == 'linear':
-            self.Li_1 = nn.Sequential(
-                nn.Linear(in_features=750, out_features=3000),
-                nn.BatchNorm1d(num_features=768),
-                nn.ReLU(),
-                nn.Dropout(p=0.1)
-            )
-            self.Li_2 = nn.Sequential(
-                nn.Linear(in_features=768, out_features=2),
-            )
+        # if decoder_type == 'linear':
+        #     self.Li_1 = nn.Sequential(
+        #         nn.Linear(in_features=750, out_features=3000),
+        #         nn.BatchNorm1d(num_features=768),
+        #         nn.ReLU(),
+        #         nn.Dropout(p=0.1)
+        #     )
+        #     self.Li_2 = nn.Sequential(
+        #         nn.Linear(in_features=768, out_features=2),
+        #     )
         
-        elif decoder_type == 'cnn':
+        if decoder_type == 'cnn':
             self.cnn_1 = nn.Sequential(
                 nn.Conv1d(768, 256, kernel_size=7, padding='same'),
                 nn.BatchNorm1d(256),

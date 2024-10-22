@@ -1,7 +1,7 @@
 CUDA_VISIBLE_DEVICES=0,1 \
 exec -a Johnn9_Finetune \
 python train.py \
---model_name '10_21_data2vecpick_freeze_30000' \
+--model_name '10_21_data2vecpick_freeze_15000' \
 --train_model 'wav2vec2' \
 --batch_size 64 \
 --num_workers 4 \
@@ -11,7 +11,7 @@ python train.py \
 --weighted_sum 'n' \
 --lr 0.00005 \
 --task 'pick' \
---checkpoint_path "/mnt/nas3/johnn9/pretrain/data2vec/checkpoint_6_30000.pt" \
+--checkpoint_path "/mnt/nas3/johnn9/pretrain/data2vec/checkpoint_3_15000.pt" \
 
 # --resume 'true' \
 # --checkpoint_path "None" \

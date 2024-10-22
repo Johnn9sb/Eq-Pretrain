@@ -5,19 +5,21 @@ import math
 import sys
 
 sys.path.append('../')
-from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+# from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
 # from ws_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+from data2vec1 import Data2VecAudioModel, Data2VecAudioConfig
 
 class Wav2Vec_Mag(nn.Module):
     def __init__(self, decoder_type, wavelength, device, checkpoint_path='../../checkpoint.pt'):
         super(Wav2Vec_Mag, self).__init__()
 
         print("Loading pretrained Wav2Vec...")
-        self.w2v = Wav2Vec2Model(Wav2Vec2Config)
+        # self.w2v = Wav2Vec2Model(Wav2Vec2Config)
+        self.w2v = Data2VecAudioModel(Data2VecAudioConfig)
 
         if checkpoint_path != 'None':
             checkpoint = torch.load(checkpoint_path, map_location=device)
-            self.w2v.load_state_dict(checkpoint['model'], strict=True)
+            self.w2v.load_state_dict(checkpoint['model'], strict=False)
 
         for param in self.w2v.parameters():
             param.requires_grad = False
@@ -29,10 +31,10 @@ class Wav2Vec_Mag(nn.Module):
 
         self.dropout = nn.Dropout(0.1)
         self.decoder_type = decoder_type
-        if decoder_type == 'linear':
-            self.decoder_time = nn.Linear(wavelength//4, 1)
-            self.decoder_dim = nn.Linear(768, 1)
-        elif decoder_type == 'cnn':
+        # if decoder_type == 'linear':
+        #     self.decoder_time = nn.Linear(wavelength//4, 1)
+        #     self.decoder_dim = nn.Linear(768, 1)
+        if decoder_type == 'cnn':
             self.cnn_1 = nn.Sequential(
                 nn.Conv1d(768, 256, kernel_size=7, padding='same'),
                 nn.BatchNorm1d(256),
