@@ -12,7 +12,7 @@ def parse_arguments():
     parser.add_argument('--epochs',             default=200,        type=int,   help='Training epochs')
     parser.add_argument('--test_mode',          default='false',                help='Input true to enter test mode')
     parser.add_argument('--resume',             default='false',                help='Input true to enter resume mode')
-    parser.add_argument('--noise_need',         default='true',                 help='Input n to disable noise data')
+    parser.add_argument('--noise_need',         default='true',                 help='Input false to disable noise data')
     parser.add_argument('--decoder_type',       default='linear',               help='linear,cnn,transformer')
     parser.add_argument('--weight',             default='1.0',      type=float, help='Training P weight')
     parser.add_argument('--early_stop',         default='7',        type=int,   help='Training early stop')
@@ -27,6 +27,8 @@ def parse_arguments():
     parser.add_argument('--lr',                 default='0.0005',   type=float, help='Learning rate')
     parser.add_argument('--weighted_sum',       default='n',                    help='y or n')
     parser.add_argument('--dataset',            default='tw',                   help='tw or stead')
+    parser.add_argument('--result',             default='n',                    help='picking result')
+    parser.add_argument('--image',              default='n',                    help='y for picking image')
 
     args = parser.parse_args()
     return args
@@ -70,7 +72,8 @@ def get_dataset(args):
         print('tw dataset')
         print('c_train = ', len(c_train))
         print('t_train = ', len(t_train))
-        print('n_train = ', len(n_train))
+        if args.noise_need == 'true':
+            print('n_train = ', len(n_train))
     elif args.dataset == 'stead':
         stead = sbd.WaveformDataset(stead_path, sampling_rate=100)
         train, dev, test = stead.train_dev_test()

@@ -13,7 +13,7 @@
 CUDA_VISIBLE_DEVICES=0,1 \
 exec -a Johnn9_Finetune \
 python threshold.py \
---model_name '4_23_scratch_1000_cnn' \
+--model_name '4_28_lempick_1000_tune_cnn' \
 --train_model 'wav2vec2' \
 --batch_size 64 \
 --num_workers 4 \

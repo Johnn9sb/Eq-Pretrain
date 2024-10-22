@@ -83,8 +83,8 @@ def set_generators(opt, ptime=None):
             dev = cwbsn_dev + tsmip_dev + cwbsn_noise_dev
             test = cwbsn_test + tsmip_test + cwbsn_noise_test
         else:
-            dev = cwbsn_dev + tsmip_dev 
-            test = cwbsn_test + tsmip_test 
+            dev = cwbsn_dev + tsmip_dev
+            test = cwbsn_test + tsmip_test
 
     print(f'total traces -> dev: {len(dev)}, test: {len(test)}')
 
@@ -92,8 +92,8 @@ def set_generators(opt, ptime=None):
     test_generator = sbg.GenericGenerator(test)
 
     # set generator with or without augmentations
-    augmentations = basic_augmentations(opt, test=True, ptime=opt.p_timestep )
-    
+    augmentations = basic_augmentations(opt, test=True, ptime=opt.p_timestep)
+
     dev_generator.add_augmentations(augmentations)
     test_generator.add_augmentations(augmentations)
 

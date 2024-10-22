@@ -75,39 +75,40 @@ def label_gen(label):
 
 
 def image_save(batch,x,y,savepath,num,batch_num):
-    waveform1 = batch['X'][batch_num,0]
-    waveform2 = batch['X'][batch_num,1]
-    waveform3 = batch['X'][batch_num,2]
-    p_predict = x[batch_num,0] 
-    p_label = y[batch_num,0]
-    waveform1 = waveform1.detach().numpy()
-    waveform2 = waveform2.detach().numpy()
-    waveform3 = waveform3.detach().numpy()
-    p_predict = p_predict.detach().cpu().numpy()
-    p_label = p_label.detach().cpu().numpy()
-    # 绘制波形数据
-    plt.figure(figsize=(10, 15))
-    # 绘制波形数据
-    plt.subplot(511)  # 第一行的第一个子图
-    plt.plot(waveform1)
-    plt.title('Waveform 1')
-    plt.subplot(512)  # 第一行的第二个子图
-    plt.plot(waveform2)
-    plt.title('Waveform 2')
-    plt.subplot(513)  # 第一行的第三个子图
-    plt.plot(waveform3)
-    plt.title('Waveform 3')
-    plt.subplot(514)  # 第一行的第四个子图
-    plt.plot(p_predict)
-    plt.title('P_predict')
-    plt.subplot(515) 
-    plt.plot(p_label)
-    plt.title('P_label')
-    plt.tight_layout()
-    fignum1 = str(image)
-    savepath = savepath + str(num) + '.png'
-    plt.savefig(savepath)
-    plt.close('all')
+    if args.image == 'y':
+        waveform1 = batch['X'][batch_num,0]
+        waveform2 = batch['X'][batch_num,1]
+        waveform3 = batch['X'][batch_num,2]
+        p_predict = x[batch_num,0] 
+        p_label = y[batch_num,0]
+        waveform1 = waveform1.detach().numpy()
+        waveform2 = waveform2.detach().numpy()
+        waveform3 = waveform3.detach().numpy()
+        p_predict = p_predict.detach().cpu().numpy()
+        p_label = p_label.detach().cpu().numpy()
+        # 绘制波形数据
+        plt.figure(figsize=(10, 15))
+        # 绘制波形数据
+        plt.subplot(511)  # 第一行的第一个子图
+        plt.plot(waveform1)
+        plt.title('Waveform 1')
+        plt.subplot(512)  # 第一行的第二个子图
+        plt.plot(waveform2)
+        plt.title('Waveform 2')
+        plt.subplot(513)  # 第一行的第三个子图
+        plt.plot(waveform3)
+        plt.title('Waveform 3')
+        plt.subplot(514)  # 第一行的第四个子图
+        plt.plot(p_predict)
+        plt.title('P_predict')
+        plt.subplot(515) 
+        plt.plot(p_label)
+        plt.title('P_label')
+        plt.tight_layout()
+        fignum1 = str(image)
+        savepath = savepath + str(num) + '.png'
+        plt.savefig(savepath)
+        plt.close('all')
 
 print("Function load Complete!!!")
 # =========================================================================================================
@@ -215,6 +216,8 @@ print("Testing start!!!")
 start_time = time.time()
 f = open(threshold_path,"w")
 
+result_path = '/mnt/nas3/johnn9/experiment/pickmag/pick_result'
+result_num = 0 
 if args.task == 'pick':   
     print("Testing: " + str(threshold) + " start!!")
     p_tp,p_tn,p_fp,p_fn,p_fpn = 0,0,0,0,0
@@ -224,12 +227,18 @@ if args.task == 'pick':
     image = 0
     # Test loop
     progre = tqdm(test_loader,total = len(test_loader), ncols=80)
+
     for batch in progre:
         p_mean_batch,p_std_batch,p_mae_batch = 0,0,0
         s_mean_batch,s_std_batch,s_mae_batch = 0,0,0
         x = batch['X'].to(device)
         y = batch['y'].to(device)
         x = model(x.to(device))
+        
+        file_name = f"batch_{result_num}.pt"
+        file_path = os.path.join(result_path, file_name)
+        torch.save(x, file_path)
+        result_num = result_num + 1
 
         if args.train_model == 'eqt':
             x_tensor = torch.empty(2,len(y),window)

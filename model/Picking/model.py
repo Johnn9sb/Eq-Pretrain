@@ -6,17 +6,20 @@ import sys
 
 sys.path.append('../')
 # from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
-from ws_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
-
+# from ws_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+from data2vec1 import Data2VecAudioModel, Data2VecAudioConfig
 
 class Wav2vec_Pick(nn.Module):
     def __init__(self, args, decoder_type, device, checkpoint_path='../../checkpoint.pt'):
         super().__init__()
-        self.w2v = Wav2Vec2Model(Wav2Vec2Config)
+
+        # self.w2v = Wav2Vec2Model(Wav2Vec2Config)
+        self.w2v = Data2VecAudioModel(Data2VecAudioConfig)
+        
         self.args = args
         if checkpoint_path != 'None':
             checkpoint = torch.load(checkpoint_path, map_location=device)
-            self.w2v.load_state_dict(checkpoint['model'], strict=True)
+            self.w2v.load_state_dict(checkpoint['model'], strict=False)
         self.decoder_type = decoder_type
         self.dropout = nn.Dropout(0.1)
         self.sigmoid = nn.Sigmoid()
@@ -84,6 +87,8 @@ class Wav2vec_Pick(nn.Module):
         else:
             with torch.no_grad():
                 x = self.w2v(x)
+
+
         if self.args.weighted_sum == 'y':
             weights = F.softmax(self.weights,dim=0)
             wei = 0

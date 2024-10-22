@@ -266,8 +266,10 @@ elif args.train_model == "eqt":
         model = sbm.EQTransformer(in_samples=6000, phases='PS')
 if parl == 'y':
     num_gpus = torch.cuda.device_count()
+    print(num_gpus)
     if num_gpus > 0:
         gpu_indices = list(range(num_gpus))
+        print(gpu_indices)
     model = DataParallel(model, device_ids=gpu_indices)
 if args.resume == 'true':
     model.load_state_dict(torch.load(checkpoint))

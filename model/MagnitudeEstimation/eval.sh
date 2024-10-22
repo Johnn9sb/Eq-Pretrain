@@ -1,6 +1,6 @@
-CUDA_VISIBLE_DEVICES=1 \
+CUDA_VISIBLE_DEVICES=2,3 \
 python test.py \
---save_path '/mnt/nas3/johnn9/mag_checkpoint/lem_wei_1000' \
+--save_path '/mnt/nas3/johnn9/mag_checkpoint/lem_scratch' \
 --model_opt 'w2v' \
 --decoder_type 'cnn' \
 --batch_size 64 \

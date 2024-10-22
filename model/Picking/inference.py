@@ -38,7 +38,7 @@ print("Init Complete!!!")
 # =========================================================================================================
 # DataLoad
 start_time = time.time()
-# _,_,test = get_dataset(args)
+_,_,test = get_dataset(args)
 
 # df = pd.read_csv('/mnt/nas5/johnn9/CWBSN_seisbench/metadata.csv')
 # unique_distances = df['source_magnitude'].unique()
@@ -46,14 +46,14 @@ start_time = time.time()
 # print(sorted_distances)
 # sys.exit()
 
-data_4_3_path = "/mnt/nas5/johnn9/CWBSN_seisbench/"
-test = sbd.WaveformDataset(data_4_3_path, sampling_rate=100)
-mask = test.metadata['station_code'] == 'HWA'
-test.filter(mask)
-magmask = test.metadata['source_magnitude'] == 7.18
-test.filter(magmask)
-chamask = test.metadata['trace_channel'] == 'HL'
-test.filter(chamask)
+# data_4_3_path = "/mnt/nas5/johnn9/CWBSN_seisbench/"
+# test = sbd.WaveformDataset(test, sampling_rate=100)
+# mask = test.metadata['station_code'] == 'HWA'
+# test.filter(mask)
+# magmask = test.metadata['source_magnitude'] == 7.18
+# test.filter(magmask)
+# chamask = test.metadata['trace_channel'] == 'HL'
+# test.filter(chamask)
 print(len(test))
 
 end_time = time.time()
@@ -140,8 +140,9 @@ s_dict = {
 if args.task == 'pick':
     augmentations = [
         sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
-        # sbg.RandomWindow(windowlen=window, strategy="pad",low=250,high=5750),
-        sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
+        # sbg.RandomWindow(windowlen=3000, strategy="pad"),
+        sbg.RandomWindow(windowlen=3000, strategy="pad",low=0,high=4000),
+        # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
         sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
         sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
         sbg.ChangeDtype(np.float32),
@@ -210,6 +211,11 @@ print("Testing start!!!")
 start_time = time.time()
 progre = tqdm(test_loader,total = len(test_loader), ncols=80)
 num = 0
+
+
+pred = []
+label = []
+
 for batch in progre:
     x = batch['X'].to(device)
     y = batch['y'].to(device)
@@ -222,7 +228,19 @@ for batch in progre:
                 break
         x = x_tensor.permute(1,0,2)
         x = x.to(device)
-    image_save(batch,x,y,image_path,num=num,batch_num=0)
-    num = num + 1
+
+
+    # image_save(batch,x,y,image_path,num=num,batch_num=0)
+    # num = num + 1
+
+    pred.append(x[:,0])
+    label.append(y[:,0])
+
+preds = torch.cat(pred, dim=0)
+labels = torch.cat(label, dim=0)
+print('preds.shape = ', preds.shape)
+print('labels.shape = ', labels.shape)
+torch.save(preds, '/mnt/nas3/johnn9/experiment/pred_result/0403_phasenet/preds.pt')
+torch.save(labels, '/mnt/nas3/johnn9/experiment/pred_result/0403_phasenet/lables.pt')
 
 sys.exit()

@@ -46,25 +46,25 @@ c_train, _, _ = cwb.train_dev_test()
 print(len(c_train))
 
 
-sys.exit()
+# sys.exit()
 
-mask = cwb.metadata["trace_completeness"] == 1
-cwb.filter(mask)
-c_train, _, _ = cwb.train_dev_test()
+# mask = cwb.metadata["trace_completeness"] == 1
+# cwb.filter(mask)
+# c_train, _, _ = cwb.train_dev_test()
 
-print(type(c_train))
-print(len(c_train))
+# print(type(c_train))
+# print(len(c_train))
 
-p_mask = cwb.metadata["trace_p_arrival_sample"].notna()
-s_mask = cwb.metadata["trace_s_arrival_sample"].notna()
-cwb.filter(p_mask)
-cwb.filter(s_mask)
-c_train, _, _ = cwb.train_dev_test()
+# p_mask = cwb.metadata["trace_p_arrival_sample"].notna()
+# s_mask = cwb.metadata["trace_s_arrival_sample"].notna()
+# cwb.filter(p_mask)
+# cwb.filter(s_mask)
+# c_train, _, _ = cwb.train_dev_test()
 
-print(len(c_train))
+# print(len(c_train))
 
-sys.exit()
-
+# sys.exit()
+print('!!!!!!!!!!!!!!!')
 phase_dict = {
     "trace_p_arrival_sample": "P",
     "trace_pP_arrival_sample": "P",
@@ -103,25 +103,24 @@ s_dict = {
 }
 
 augmentations = [
-    sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=1000, windowlen=6000, selection="first", strategy="pad"),
-    sbg.RandomWindow(windowlen=6000, strategy="pad",low=750,high=5000),
+    sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
+    sbg.RandomWindow(windowlen=3000, strategy="pad",low=0,high=4000),
     # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
     sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
     sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
     sbg.ChangeDtype(np.float32),
-    # sbg.ProbabilisticLabeller(label_columns=phase_dict, sigma=30, dim=0),
-    sbg.DetectionLabeller(p_phases=p_dict, s_phases=s_dict),
+    sbg.ProbabilisticLabeller(label_columns=phase_dict, sigma=30, dim=0),
+    # sbg.DetectionLabeller(p_phases=p_dict, s_phases=s_dict),
 ]
-dev_gene = sbg.GenericGenerator(t_dev)
+dev_gene = sbg.GenericGenerator(c_train)
 dev_gene.add_augmentations(augmentations)
-
 dev_loader = DataLoader(dev_gene,batch_size=100, shuffle=False, num_workers=4)
 progre = tqdm(enumerate(dev_loader),total=len(dev_loader),ncols=80)
 for batch_id, batch in progre:
     # General 
     y = batch['y']
     print(y.shape)
-
+    print('!!!!!!!!!!!!!!!')
     break
 
 y = y[:,0,:]

@@ -5,8 +5,8 @@ import math
 import sys
 
 sys.path.append('../')
-# from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
-from ws_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
+# from ws_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
 
 class Wav2Vec_Mag(nn.Module):
     def __init__(self, decoder_type, wavelength, device, checkpoint_path='../../checkpoint.pt'):
@@ -41,28 +41,28 @@ class Wav2Vec_Mag(nn.Module):
                 nn.Dropout(p=0.1),
             )
             self.cnn_2 = nn.Sequential(
-                nn.Conv1d(256, 128, kernel_size=5, padding='same'),
-                nn.BatchNorm1d(128),
+                nn.Conv1d(256, 256, kernel_size=5, padding='same'),
+                nn.BatchNorm1d(256),
                 nn.MaxPool1d(2),
                 nn.ReLU(),
                 nn.Dropout(p=0.1),
             )
             self.cnn_3 = nn.Sequential(
-                nn.Conv1d(128, 64, kernel_size=5,padding='same'),
-                nn.BatchNorm1d(64),
+                nn.Conv1d(256, 256, kernel_size=5,padding='same'),
+                nn.BatchNorm1d(256),
                 nn.MaxPool1d(2),
                 nn.ReLU(),
                 nn.Dropout(p=0.1),
             )
             self.cnn_4 = nn.Sequential(
-                nn.Conv1d(64, 32, kernel_size=11),
-                nn.BatchNorm1d(32),
+                nn.Conv1d(256, 256, kernel_size=11),
+                nn.BatchNorm1d(256),
                 nn.MaxPool1d(2),
                 nn.ReLU(),
                 nn.Dropout(p=0.1),
             )
             self.flatten = nn.Flatten()
-            self.out = nn.Linear(1312,1)
+            self.out = nn.Linear(10496,1)
 
         elif decoder_type == 'CNN_Linear':
             self.conv = nn.Sequential(nn.Conv1d(128, 96, kernel_size=7, padding='same'),
@@ -118,12 +118,12 @@ class Wav2Vec_Mag(nn.Module):
     def forward(self, wave):
         # wave: (batch, 1500, 128)
 
-        # with torch.no_grad():
-        #     rep = self.w2v(wave)
+        with torch.no_grad():
+            rep = self.w2v(wave)
 
-        rep = self.w2v(wave)
+        # rep = self.w2v(wave)
 
-        weighted_sum = 'y'
+        weighted_sum = 'n'
         if weighted_sum == 'y':
             weights = F.softmax(self.weights,dim=0)
             wei = 0
