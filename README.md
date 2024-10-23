@@ -1,5 +1,5 @@
 ![](https://img.shields.io/static/v1?label=python&message=>3.8&color=yellow)
-# Earthquake-Pretraining
+# LEM: A Large Earthquake Foundation Model for P-phase Picking and Magnitude Estimation
 PyTorch implementation of "Earthquake Waveform Pre-trained Model" with Fairseq.
 
 This implementation is currently designed for inference purposes only and is not intended for training.
