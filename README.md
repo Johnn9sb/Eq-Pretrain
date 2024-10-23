@@ -5,6 +5,15 @@ PyTorch implementation of "Earthquake Waveform Pre-trained Model" with Fairseq.
 This implementation is currently designed for inference purposes only and is not intended for training.
 Please note that the current version supports inference functionalities exclusively.
 
+## Introduction
+Earthquake monitoring and warning are critical for disaster early warning systems. While deep learning has been extensively studied in this field, the application of **self-supervised learning** remains relatively unexplored. Self-supervised learning can learn useful representations without requiring extensive labeled data, and models trained in this way can be fine-tuned for specific tasks with better efficiency.
+
+## Proposed Model
+We propose a **Large Earthquake Model (LEM)** to evaluate the effectiveness of self-supervised learning in earthquake-related tasks, focusing on **p-phase picking** and **magnitude estimation**.
+
+## Key Results
+Our experiments show that LEM delivers competitive results compared to state-of-the-art models, achieving satisfactory performance using only **0.1% of the labeled data**. This approach offers a potential solution to reduce the time and effort required for seismic data labeling.
+
 ## Pre-trained models
 You need to download the pre-trained weights and input the savepath of the weights into the required model to perform fine-tuning.
 

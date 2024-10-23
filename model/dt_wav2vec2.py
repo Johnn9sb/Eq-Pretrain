@@ -70,10 +70,10 @@ class Wav2Vec2Config(FairseqDataclass):
     )
     # dropouts
     dropout: float = field(
-        default=0.1, metadata={"help": "dropout probability for the transformer"}
+        default=0.0, metadata={"help": "dropout probability for the transformer"}
     )
     attention_dropout: float = field(
-        default=0.1, metadata={"help": "dropout probability for attention weights"}
+        default=0.0, metadata={"help": "dropout probability for attention weights"}
     )
     activation_dropout: float = field(
         default=0.0, metadata={"help": "dropout probability after activation in FFN"}
@@ -584,7 +584,7 @@ class Wav2Vec2Model(BaseFairseqModel):
         self,
         source,
         padding_mask=None,
-        mask=True,
+        mask=False,
         features_only=False,
         layer=None,
         mask_indices=None,
@@ -654,25 +654,29 @@ class Wav2Vec2Model(BaseFairseqModel):
             curr_temp = q["temp"]
             features = self.project_inp(features)
 
-        if mask:
-            x, mask_indices = self.apply_mask(
-                features,
-                padding_mask,
-                mask_indices=mask_indices,
-                mask_channel_indices=mask_channel_indices,
-            )
-            if not is_xla_tensor(x) and mask_indices is not None:
-                # tpu-comment: reducing the size in a dynamic way causes
-                # too many recompilations on xla.
-                y = unmasked_features[mask_indices].view(
-                    unmasked_features.size(0), -1, unmasked_features.size(-1)
-                )
-            else:
-                y = unmasked_features
-        else:
-            x = features
-            y = unmasked_features
-            mask_indices = None
+        # if mask:
+        #     x, mask_indices = self.apply_mask(
+        #         features,
+        #         padding_mask,
+        #         mask_indices=mask_indices,
+        #         mask_channel_indices=mask_channel_indices,
+        #     )
+        #     if not is_xla_tensor(x) and mask_indices is not None:
+        #         # tpu-comment: reducing the size in a dynamic way causes
+        #         # too many recompilations on xla.
+        #         y = unmasked_features[mask_indices].view(
+        #             unmasked_features.size(0), -1, unmasked_features.size(-1)
+        #         )
+        #     else:
+        #         y = unmasked_features
+        # else:
+        #     x = features
+        #     y = unmasked_features
+        #     mask_indices = None
+        
+        x = features
+        y = unmasked_features
+        mask_indices = None
 
         x, layer_results = self.encoder(x, padding_mask=padding_mask, layer=layer)
 

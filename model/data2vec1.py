@@ -303,7 +303,7 @@ class Data2VecAudioModel(BaseFairseqModel):
         self,
         source,
         padding_mask=None,
-        mask=True,
+        mask=False,
         features_only=True,
         layer=None,
         mask_indices=None,
@@ -359,16 +359,18 @@ class Data2VecAudioModel(BaseFairseqModel):
 
         features = self.dropout_input(features)
 
-        if mask:
-            x, mask_indices = self.apply_mask(
-                features,
-                padding_mask,
-                mask_indices=mask_indices,
-                mask_channel_indices=mask_channel_indices,
-            )
-        else:
-            x = features
-            mask_indices = None
+        # if mask:
+        #     x, mask_indices = self.apply_mask(
+        #         features,
+        #         padding_mask,
+        #         mask_indices=mask_indices,
+        #         mask_channel_indices=mask_channel_indices,
+        #     )
+        # else:
+        #     x = features
+        #     mask_indices = None
+        x = features
+        mask_indices = None
 
         x, layer_results = self.encoder(
             x,
