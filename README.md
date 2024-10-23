@@ -10,6 +10,7 @@ Earthquake monitoring and warning are critical for disaster early warning system
 
 ## Proposed Model
 We propose a **Large Earthquake Model (LEM)** to evaluate the effectiveness of self-supervised learning in earthquake-related tasks, focusing on **p-phase picking** and **magnitude estimation**.
+![LEM](/docs/model.png)
 
 ## Key Results
 Our experiments show that LEM delivers competitive results compared to state-of-the-art models, achieving satisfactory performance using only **0.1% of the labeled data**. This approach offers a potential solution to reduce the time and effort required for seismic data labeling.
