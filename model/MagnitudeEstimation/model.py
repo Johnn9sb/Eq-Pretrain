@@ -7,7 +7,8 @@ import sys
 sys.path.append('../')
 # from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
 # from ws_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
-from data2vec1 import Data2VecAudioModel, Data2VecAudioConfig
+# from data2vec1 import Data2VecAudioModel, Data2VecAudioConfig
+from ws_data2vec import Data2VecAudioModel, Data2VecAudioConfig
 
 class Wav2Vec_Mag(nn.Module):
     def __init__(self, decoder_type, wavelength, device, checkpoint_path='../../checkpoint.pt'):
@@ -122,10 +123,10 @@ class Wav2Vec_Mag(nn.Module):
 
         with torch.no_grad():
             rep = self.w2v(wave)
-
+        # print("123333333333333333333333333333333333333333333333333333")
         # rep = self.w2v(wave)
 
-        weighted_sum = 'n'
+        weighted_sum = 'y'
         if weighted_sum == 'y':
             weights = F.softmax(self.weights,dim=0)
             wei = 0
