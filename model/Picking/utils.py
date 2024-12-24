@@ -78,5 +78,5 @@ def get_dataset(args):
         stead = sbd.WaveformDataset(stead_path, sampling_rate=100)
         train, dev, test = stead.train_dev_test()
         print('stead dataset')
-        print('train = ', len(c_train))
+        print('train = ', len(train))
     return train,dev,test

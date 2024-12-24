@@ -7,8 +7,8 @@ import sys
 sys.path.append('../')
 # from wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
 # from ws_wav2vec2 import Wav2Vec2Model,Wav2Vec2Config
-# from data2vec1 import Data2VecAudioModel, Data2VecAudioConfig
-from ws_data2vec import Data2VecAudioModel, Data2VecAudioConfig
+from data2vec1 import Data2VecAudioModel, Data2VecAudioConfig
+# from ws_data2vec import Data2VecAudioModel, Data2VecAudioConfig
 
 
 class Wav2vec_Pick(nn.Module):

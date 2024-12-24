@@ -34,7 +34,7 @@ print(model_name)
 # =========================================================================================================
 mod_path = "/mnt/nas3/johnn9/checkpoint/"
 model_path = mod_path + model_name
-checkpoint = model_path+'/best_checkpoint.pt'
+checkpoint = model_path+'/last_checkpoint.pt'
 if not os.path.isdir(model_path):
     os.mkdir(model_path)
 score_path = model_path + '/' + model_name + '.txt'

@@ -1,12 +1,12 @@
-CUDA_VISIBLE_DEVICES=2 \
+CUDA_VISIBLE_DEVICES=0 \
 exec -a Johnn9_Finetune \
 python train.py \
---save_path '/mnt/nas3/johnn9/mag_checkpoint/data2vec_wei_1000' \
+--save_path '/mnt/nas3/johnn9/mag_checkpoint/data2vec_freeze_1000' \
 --model_opt 'w2v' \
 --decoder_type 'cnn' \
 --batch_size 64 \
 --epochs 200 \
---lr 0.00001 \
+--lr 0.00005 \
 --workers 4 \
 --level 4 \
 --w2v_path '/mnt/nas3/johnn9/pretrain/data2vec/checkpoint_10_50000.pt' \

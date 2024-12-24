@@ -11,19 +11,19 @@
 # --dataset 'stead' \
 # --test_mode 'true' \
 
-CUDA_VISIBLE_DEVICES=0 \
+CUDA_VISIBLE_DEVICES=2,3 \
 exec -a Johnn9_Finetune \
 python eval.py \
---model_name '11_12_data2vecpick_freeze_30000_1000' \
+--model_name 'data2vecpick_tune' \
 --train_model 'wav2vec2' \
 --batch_size 64 \
 --num_workers 4 \
 --decoder_type 'cnn' \
 --parl 'y' \
 --task 'pick' \
---threshold 0.4 \
+--threshold 0.3 \
 --weighted_sum 'n' \
-# --noise_need 'false' \
 # --dataset 'stead' \
+# --noise_need 'false' \
 # --test_mode 'true' \
 
