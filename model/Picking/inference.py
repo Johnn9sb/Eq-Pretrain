@@ -33,12 +33,18 @@ parl = 'y'  # y,n
 mod_path = "/mnt/nas3/johnn9/checkpoint/"
 model_path = mod_path + model_name
 loadmodel = model_path + '/' + 'last_checkpoint.pt' 
-image_path = '/mnt/nas3/johnn9/test/4_3_image/'
+image_path = '/mnt/nas3/johnn9/test/graduate/'
 print("Init Complete!!!")
 # =========================================================================================================
 # DataLoad
 start_time = time.time()
-_,_,test = get_dataset(args)
+
+# _,_,test = get_dataset(args)
+
+# 0403_path = "/mnt/nas5/johnn9/CWBSN_seisbench"
+# test = sbd.WaveformDataset(0403_path, sampling_rate=100)
+
+
 
 # df = pd.read_csv('/mnt/nas5/johnn9/CWBSN_seisbench/metadata.csv')
 # unique_distances = df['source_magnitude'].unique()
@@ -46,12 +52,12 @@ _,_,test = get_dataset(args)
 # print(sorted_distances)
 # sys.exit()
 
-# data_4_3_path = "/mnt/nas5/johnn9/CWBSN_seisbench/"
-# test = sbd.WaveformDataset(test, sampling_rate=100)
+data_4_3_path = "/mnt/nas5/johnn9/CWBSN_seisbench/"
+test = sbd.WaveformDataset(data_4_3_path, sampling_rate=100)
 # mask = test.metadata['station_code'] == 'HWA'
 # test.filter(mask)
-# magmask = test.metadata['source_magnitude'] == 7.18
-# test.filter(magmask)
+magmask = test.metadata['source_magnitude'] == 7.18
+test.filter(magmask)
 # chamask = test.metadata['trace_channel'] == 'HL'
 # test.filter(chamask)
 print(len(test))
@@ -76,30 +82,50 @@ def image_save(batch,x,y,savepath,num,batch_num):
     p_predict = p_predict.detach().cpu().numpy()
     p_label = p_label.detach().cpu().numpy()
     # 绘制波形数据
-    plt.figure(figsize=(10, 15))
+    plt.figure(figsize=(10, 9))
     # 绘制波形数据
-    plt.subplot(511)  # 第一行的第一个子图
+
+    plt.subplot(311)  # 第一行的第一个子图
     plt.plot(waveform1)
-    plt.title('Waveform 1')
-    plt.subplot(512)  # 第一行的第二个子图
+    plt.ylabel('Gal (cm/s2)')
+    plt.title('2024/04/03 HuaLien magnitude 7.2 earthquake HWA-station trace')
+    
+    plt.subplot(312)  # 第一行的第二个子图
     plt.plot(waveform2)
-    plt.title('Waveform 2')
-    plt.subplot(513)  # 第一行的第三个子图
+    plt.ylabel('Gal (cm/s2)')
+    # plt.title('Waveform 2')
+    plt.subplot(313)  # 第一行的第三个子图
     plt.plot(waveform3)
-    plt.title('Waveform 3')
-    plt.subplot(514)  # 第一行的第四个子图
-    plt.plot(p_predict)
-    plt.title('P_predict')
-    plt.ylim(0, 1)
-    plt.axhline(y=0.5, color='red', linestyle='--')
-    plt.subplot(515) 
-    plt.plot(p_label)
-    plt.title('P_label')
-    plt.ylim(0, 1)
+    plt.ylabel('Gal (cm/s2)')
+    plt.xlabel('Time sample (0.01s / sample)')
+    # plt.title('Waveform 3')
     plt.tight_layout()
     savepath = savepath + str(num) + '.png'
     plt.savefig(savepath)
     plt.close('all')
+
+    # plt.subplot(511)  # 第一行的第一个子图
+    # plt.plot(waveform1)
+    # plt.title('Waveform 1')
+    # plt.subplot(512)  # 第一行的第二个子图
+    # plt.plot(waveform2)
+    # plt.title('Waveform 2')
+    # plt.subplot(513)  # 第一行的第三个子图
+    # plt.plot(waveform3)
+    # plt.title('Waveform 3')
+    # plt.subplot(514)  # 第一行的第四个子图
+    # plt.plot(p_predict)
+    # plt.title('P_predict')
+    # plt.ylim(0, 1)
+    # plt.axhline(y=0.5, color='red', linestyle='--')
+    # plt.subplot(515) 
+    # plt.plot(p_label)
+    # plt.title('P_label')
+    # plt.ylim(0, 1)
+    # plt.tight_layout()
+    # savepath = savepath + str(num) + '.png'
+    # plt.savefig(savepath)
+    # plt.close('all')
 
 phase_dict = {
     "trace_p_arrival_sample": "P",
@@ -140,8 +166,8 @@ s_dict = {
 if args.task == 'pick':
     augmentations = [
         sbg.WindowAroundSample(list(phase_dict.keys()), samples_before=3000, windowlen=6000, selection="first", strategy="pad"),
-        # sbg.RandomWindow(windowlen=3000, strategy="pad"),
-        sbg.RandomWindow(windowlen=3000, strategy="pad",low=0,high=4000),
+        sbg.RandomWindow(windowlen=3000, strategy="pad"),
+        # sbg.RandomWindow(windowlen=3000, strategy="pad",low=0,high=4000),
         # sbg.FixedWindow(p0=3000-ptime,windowlen=3000,strategy="pad"),
         sbg.Normalize(demean_axis=-1, amp_norm_axis=-1, amp_norm_type="peak"),
         sbg.Filter(N=5, Wn=[1,10],btype='bandpass'),
@@ -201,11 +227,12 @@ print(f"Model Complete time: {elapsed_time} sec")
 print("=====================================================")
 # =========================================================================================================
 # Testing
+
 print("Testing start!!!")
-# print("Model weights:", model.module.weights)
-# weights = F.softmax(model.module.weights,dim=0)
-# print("Softmax weights:", weights)
-# sys.exit()
+print("Model weights:", model.module.weights)
+weights = F.softmax(model.module.weights,dim=0)
+print("Softmax weights:", weights)
+sys.exit()
 
 
 start_time = time.time()
@@ -231,16 +258,33 @@ for batch in progre:
 
 
     # image_save(batch,x,y,image_path,num=num,batch_num=0)
-    # num = num + 1
+    
 
-    pred.append(x[:,0])
-    label.append(y[:,0])
+    # sys.exit()
+
+    pred.append(x[:,0].cpu().detach())
+    label.append(y[:,0].cpu().detach())
+    num = num + 1
+    if num == 5000:
+        break
 
 preds = torch.cat(pred, dim=0)
 labels = torch.cat(label, dim=0)
 print('preds.shape = ', preds.shape)
 print('labels.shape = ', labels.shape)
-torch.save(preds, '/mnt/nas3/johnn9/experiment/pred_result/0403_phasenet/preds.pt')
-torch.save(labels, '/mnt/nas3/johnn9/experiment/pred_result/0403_phasenet/lables.pt')
+
+
+
+gra_path = '/mnt/nas3/johnn9/experiment/graduate/datawei1000'
+
+
+
+if not os.path.isdir(gra_path):
+    os.mkdir(gra_path)
+pr_path = gra_path + '/preds.pt'
+la_path = gra_path + '/labels.pt'
+print(pr_path)
+torch.save(preds, pr_path)
+torch.save(labels, la_path)
 
 sys.exit()

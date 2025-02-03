@@ -25,25 +25,28 @@ import pandas as pd
 cwb_path = "/mnt/nas5/johnn9/dataset/cwbsn/"
 tsm_path = "/mnt/nas5/johnn9/dataset/tsmip/"
 noi_path = "/mnt/nas5/johnn9/dataset/cwbsn_noise/"
+ste_path = "/mnt/nas5/johnn9/dataset/stead/"
 mod_path = "/mnt/nas3/johnn9/checkpoint/"
 
-cwb = sbd.WaveformDataset(cwb_path,sampling_rate=100)
-c_train, _, _ = cwb.train_dev_test()
-print(len(c_train))
+stead = sbd.WaveformDataset(ste_path,sampling_rate=100)
+s_train, s_dev, s_test = stead.train_dev_test()
+print(len(s_train))
+print(len(s_dev))
+print(len(s_test))
 
+sys.exit()
+# mask = cwb.metadata["trace_completeness"] == 4
+# cwb.filter(mask)
+# c_train, _, _ = cwb.train_dev_test()
+# print(len(c_train))
 
-mask = cwb.metadata["trace_completeness"] == 4
-cwb.filter(mask)
-c_train, _, _ = cwb.train_dev_test()
-print(len(c_train))
+# p_mask = cwb.metadata["trace_p_arrival_sample"].notna()
+# s_mask = cwb.metadata["trace_s_arrival_sample"].notna()
+# cwb.filter(p_mask)
+# cwb.filter(s_mask)
+# c_train, _, _ = cwb.train_dev_test()
 
-p_mask = cwb.metadata["trace_p_arrival_sample"].notna()
-s_mask = cwb.metadata["trace_s_arrival_sample"].notna()
-cwb.filter(p_mask)
-cwb.filter(s_mask)
-c_train, _, _ = cwb.train_dev_test()
-
-print(len(c_train))
+# print(len(c_train))
 
 
 # sys.exit()

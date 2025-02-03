@@ -40,6 +40,8 @@ def get_dataset(args):
     tsm_path = data_path + "tsmip/"
     noi_path = data_path + "cwbsn_noise/"
     stead_path = data_path + "stead/"
+    ins_path = data_path + "instancecounts/"
+    insnoi_path = data_path + "instancenoise/"
 
     if args.dataset == 'tw':
         cwb = sbd.WaveformDataset(cwb_path, sampling_rate=100)
@@ -79,4 +81,24 @@ def get_dataset(args):
         train, dev, test = stead.train_dev_test()
         print('stead dataset')
         print('train = ', len(train))
+
+    elif args.dataset == 'hualien':
+        data_4_3_path = "/mnt/nas5/johnn9/CWBSN_seisbench"
+        test = sbd.WaveformDataset(data_4_3_path, sampling_rate=100)
+        magmask = test.metadata['source_magnitude'] == 7.18
+        test.filter(magmask)
+        train = test
+        dev = test
+        print("hualine = ",len(test))
+        
+    elif args.dataset == 'ins':
+        ins = sbd.WaveformDataset(ins_path, sampling_rate=100)
+        ins_noi = sbd.WaveformDataset(insnoi_path, sampling_rate=100)
+        i_train, i_dev, i_test = ins.train_dev_test()
+        in_train, in_dev, in_test = ins_noi.train_dev_test()
+        train = i_train + in_train
+        dev = i_dev + in_dev
+        test = i_test + in_test
+        print('train = ', len(train))
+        
     return train,dev,test
